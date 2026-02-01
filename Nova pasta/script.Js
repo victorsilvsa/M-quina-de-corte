@@ -121,7 +121,7 @@ function getShiftBadge(shift) {
         'B': 'shift-badge-b',
         'C': 'shift-badge-c'
     };
-    return `<span class="px-2 py-0.5 rounded text-xs font-medium text-white ${classes[shift] || 'bg-gray-500'}">Turno ${shift}</span>`;
+    return `<span class="px-2 py-0.5 rounded text-xs font-medium text-white ${classes[shift] || 'bg-gray-500'}"> ${shift}º</span>`;
 }
 
 function getProductionClass(quantity) {
