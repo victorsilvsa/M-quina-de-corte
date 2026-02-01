@@ -1132,9 +1132,9 @@ const SettingsManager = {
 
     getRoleLabel(role) {
         const roles = {
-            'admin': '<span class="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">Admin</span>',
+            'admin': '<span class="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">ADM</span>',
             'leader': '<span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">Líder</span>',
-            'operator': '<span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">Operador</span>'
+            'operator': '<span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">Func</span>'
         };
         return roles[role] || role;
     },
