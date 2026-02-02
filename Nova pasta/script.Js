@@ -459,6 +459,168 @@ function setupEventListeners() {
     // Closing
     document.getElementById('close-month-btn').addEventListener('click', closeMonth);
 }
+function updateLastAccessCard() {
+    const currentUser = getCurrentUser();
+    
+    if (currentUser) {
+        const levelNames = {
+            'admin': 'Administrador',
+            'supervisor': 'Supervisor',
+            'operador': 'Operador'
+        };
+        
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('pt-BR', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+        const dateString = now.toLocaleDateString('pt-BR');
+        
+        document.getElementById('last-access-name').textContent = currentUser.name || 'Usuário';
+        document.getElementById('last-access-username').textContent = currentUser.username || '-';
+        document.getElementById('last-access-level').textContent = levelNames[currentUser.level] || currentUser.level;
+        document.getElementById('last-access-time').textContent = `${timeString} - ${dateString}`;
+    }
+}
+
+// Chamar quando mostrar a tab de settings
+document.getElementById('settings-tab').addEventListener('click', () => {
+    updateLastAccessCard();
+});
+
+// Função para obter o usuário atual
+function getCurrentUser() {
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser) {
+        const { id } = JSON.parse(savedUser);
+        return users[id];
+    }
+    return currentUser;
+}
+
+// Função para atualizar o card de último acesso
+function updateLastAccessCard() {
+    const user = getCurrentUser();
+    if (user) {
+        addAccessLog(
+            user.username || 'N/A',
+            user.name || 'Usuário',
+            user.level || 'Usuário'
+        );
+    }
+}
+
+// Carregar logs de acesso do localStorage
+function loadAccessLogs() {
+    const savedLogs = localStorage.getItem('accessLogs');
+    if (savedLogs) {
+        const logs = JSON.parse(savedLogs);
+        const container = document.getElementById('access-log-container');
+        if (container) {
+            container.innerHTML = ''; // Limpa o container
+            logs.forEach(log => {
+                renderAccessLogItem(log.username, log.fullName, log.level, log.timestamp);
+            });
+        }
+    }
+}
+
+// Salvar logs de acesso no localStorage
+function saveAccessLogs(username, fullName, level, timestamp) {
+    let logs = [];
+    const savedLogs = localStorage.getItem('accessLogs');
+    
+    if (savedLogs) {
+        logs = JSON.parse(savedLogs);
+    }
+    
+    // Adicionar novo log no início
+    logs.unshift({ username, fullName, level, timestamp });
+    
+    // Limitar a 3 registros apenas
+    if (logs.length > 3) {
+        logs = logs.slice(0, 3);
+    }
+    
+    localStorage.setItem('accessLogs', JSON.stringify(logs));
+}
+
+// Renderizar um item de log
+function renderAccessLogItem(username, fullName, level, timestamp) {
+    const container = document.getElementById('access-log-container');
+    if (!container) return;
+    
+    const date = new Date(timestamp);
+    const timeString = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const dateString = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+    const initial = fullName.charAt(0).toUpperCase();
+    
+    const logItem = document.createElement('div');
+    logItem.style.cssText = `
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: white;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        border-left: 3px solid #06b6d4;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s, box-shadow 0.2s;
+        min-width: 0;
+    `;
+    
+    logItem.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex: 1; min-width: 0;">
+            <div style="width: 40px; height: 40px; min-width: 40px; background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1rem; flex-shrink: 0;">
+                ${initial}
+            </div>
+            <div style="flex: 1; min-width: 0; overflow: hidden;">
+                <h4 style="font-weight: 600; font-size: 0.875rem; color: #1f2937; margin: 0 0 0.25rem 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    ${fullName}
+                </h4>
+                <p style="font-size: 0.75rem; color: #6b7280; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    @${username} • ${level}
+                </p>
+            </div>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem; flex-shrink: 0; margin-left: 0.5rem;">
+            <span style="font-weight: 700; font-size: 0.875rem; color: #06b6d4; white-space: nowrap;">
+                ${timeString}
+            </span>
+            <span style="font-size: 0.75rem; color: #9ca3af; white-space: nowrap;">
+                ${dateString}
+            </span>
+        </div>
+    `;
+    
+    logItem.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateX(4px)';
+        this.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.1)';
+    });
+    
+    logItem.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateX(0)';
+        this.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.05)';
+    });
+    
+    container.insertBefore(logItem, container.firstChild);
+    
+    // Limitar a 3 elementos no DOM também
+    while (container.children.length > 3) {
+        container.removeChild(container.lastChild);
+    }
+}
+
+// Função para adicionar registro de acesso
+function addAccessLog(username, fullName, level) {
+    const timestamp = new Date().toISOString();
+    
+    // Renderizar na tela
+    renderAccessLogItem(username, fullName, level, timestamp);
+    
+    // Salvar no localStorage
+    saveAccessLogs(username, fullName, level, timestamp);
+}
 
 function handleLogin(e) {
     e.preventDefault();
@@ -473,6 +635,14 @@ function handleLogin(e) {
         const [userId, userData] = userEntry;
         currentUser = { ...userData, id: userId };
         localStorage.setItem('currentUser', JSON.stringify({ id: userId }));
+        
+        // Adicionar log de acesso com verificação
+        addAccessLog(
+            userData.username || 'N/A', 
+            userData.name || 'Usuário', 
+            userData.level || 'Usuário'
+        );
+        
         showMainApp();
         showToast('Login realizado com sucesso!');
     } else {
@@ -491,6 +661,13 @@ function handleLogout() {
     document.getElementById('login-password').value = '';
     document.getElementById('login-error').classList.add('hidden');
 }
+
+// Carregar logs quando a página carregar
+document.addEventListener('DOMContentLoaded', function() {
+    loadAccessLogs();
+});
+
+
 
 function showMainApp() {
     document.getElementById('login-screen').classList.add('hidden');
