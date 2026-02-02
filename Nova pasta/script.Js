@@ -488,62 +488,9 @@ document.getElementById('settings-tab').addEventListener('click', () => {
     updateLastAccessCard();
 });
 
-// Função para obter o usuário atual
-function getCurrentUser() {
-    const savedUser = localStorage.getItem('currentUser');
-    if (savedUser) {
-        const { id } = JSON.parse(savedUser);
-        return users[id];
-    }
-    return currentUser;
-}
 
-// Função para atualizar o card de último acesso
-function updateLastAccessCard() {
-    const user = getCurrentUser();
-    if (user) {
-        addAccessLog(
-            user.username || 'N/A',
-            user.name || 'Usuário',
-            user.level || 'Usuário'
-        );
-    }
-}
-
-// Carregar logs de acesso do localStorage
-function loadAccessLogs() {
-    const savedLogs = localStorage.getItem('accessLogs');
-    if (savedLogs) {
-        const logs = JSON.parse(savedLogs);
-        const container = document.getElementById('access-log-container');
-        if (container) {
-            container.innerHTML = ''; // Limpa o container
-            logs.forEach(log => {
-                renderAccessLogItem(log.username, log.fullName, log.level, log.timestamp);
-            });
-        }
-    }
-}
-
-// Salvar logs de acesso no localStorage
-function saveAccessLogs(username, fullName, level, timestamp) {
-    let logs = [];
-    const savedLogs = localStorage.getItem('accessLogs');
-    
-    if (savedLogs) {
-        logs = JSON.parse(savedLogs);
-    }
-    
-    // Adicionar novo log no início
-    logs.unshift({ username, fullName, level, timestamp });
-    
-    // Limitar a 3 registros apenas
-    if (logs.length > 3) {
-        logs = logs.slice(0, 3);
-    }
-    
-    localStorage.setItem('accessLogs', JSON.stringify(logs));
-}
+// Array para armazenar os logs de acesso em memória (máximo 3)
+let accessLogs = [];
 
 // Renderizar um item de log
 function renderAccessLogItem(username, fullName, level, timestamp) {
@@ -603,23 +550,37 @@ function renderAccessLogItem(username, fullName, level, timestamp) {
         this.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.05)';
     });
     
-    container.insertBefore(logItem, container.firstChild);
+    return logItem;
+}
+
+// Atualizar a exibição dos logs
+function updateAccessLogsDisplay() {
+    const container = document.getElementById('access-log-container');
+    if (!container) return;
     
-    // Limitar a 3 elementos no DOM também
-    while (container.children.length > 3) {
-        container.removeChild(container.lastChild);
-    }
+    container.innerHTML = ''; // Limpa o container
+    
+    // Renderiza os logs em ordem (mais recente primeiro)
+    accessLogs.forEach(log => {
+        const logItem = renderAccessLogItem(log.username, log.fullName, log.level, log.timestamp);
+        container.appendChild(logItem);
+    });
 }
 
 // Função para adicionar registro de acesso
 function addAccessLog(username, fullName, level) {
     const timestamp = new Date().toISOString();
     
-    // Renderizar na tela
-    renderAccessLogItem(username, fullName, level, timestamp);
+    // Adicionar novo log no início do array
+    accessLogs.unshift({ username, fullName, level, timestamp });
     
-    // Salvar no localStorage
-    saveAccessLogs(username, fullName, level, timestamp);
+    // Limitar a 3 registros apenas
+    if (accessLogs.length > 3) {
+        accessLogs = accessLogs.slice(0, 3);
+    }
+    
+    // Atualizar a exibição
+    updateAccessLogsDisplay();
 }
 
 function handleLogin(e) {
@@ -627,6 +588,7 @@ function handleLogin(e) {
     const username = document.getElementById('login-username').value;
     const password = document.getElementById('login-password').value;
 
+    // BUSCAR USUÁRIO DIRETO DO BD (objeto users)
     const userEntry = Object.entries(users).find(([id, u]) =>
         u.username === username && u.password === password
     );
@@ -636,11 +598,13 @@ function handleLogin(e) {
         currentUser = { ...userData, id: userId };
         localStorage.setItem('currentUser', JSON.stringify({ id: userId }));
         
-        // Adicionar log de acesso com verificação
+        // ADICIONAR LOG COM OS DADOS DO BD
+        const userFromDB = users[userId];
+        
         addAccessLog(
-            userData.username || 'N/A', 
-            userData.name || 'Usuário', 
-            userData.level || 'Usuário'
+            userFromDB.username || 'N/A', 
+            userFromDB.name || 'Usuário', 
+            userFromDB.level || 'Usuário'
         );
         
         showMainApp();
@@ -661,11 +625,6 @@ function handleLogout() {
     document.getElementById('login-password').value = '';
     document.getElementById('login-error').classList.add('hidden');
 }
-
-// Carregar logs quando a página carregar
-document.addEventListener('DOMContentLoaded', function() {
-    loadAccessLogs();
-});
 
 
 
