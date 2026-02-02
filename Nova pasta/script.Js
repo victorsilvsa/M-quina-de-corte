@@ -395,100 +395,6 @@ async function initializeDefaultData() {
 
     showToast('Sistema inicializado! Use admin/admin123 para entrar', 'info');
 }
-
-function setupEventListeners() {
-    // Login
-    document.getElementById('login-form').addEventListener('submit', handleLogin);
-
-    // Logout
-    document.getElementById('logout-btn').addEventListener('click', handleLogout);
-
-    // Tab navigation
-    document.querySelectorAll('.tab-btn, .mobile-tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-    });
-
-    // Mobile more menu
-    const mobileMoreBtn = document.getElementById('mobile-more-btn');
-    const mobileMoreMenu = document.getElementById('mobile-more-menu');
-
-    mobileMoreBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        mobileMoreMenu.classList.toggle('active');
-    });
-
-    document.querySelectorAll('.mobile-more-item').forEach(item => {
-        item.addEventListener('click', () => {
-            switchTab(item.dataset.tab);
-            mobileMoreMenu.classList.remove('active');
-        });
-    });
-
-    document.addEventListener('click', () => {
-        mobileMoreMenu.classList.remove('active');
-    });
-
-    // Machine tabs
-    document.querySelectorAll('.machine-tab').forEach(btn => {
-        btn.addEventListener('click', () => switchMachine(btn.dataset.machine));
-    });
-
-    // View toggle buttons
-    document.getElementById('calendar-view-btn').addEventListener('click', () => toggleProductionView('calendar'));
-    document.getElementById('table-view-btn').addEventListener('click', () => toggleProductionView('table'));
-
-    // Month navigation
-    document.getElementById('prev-month-dash').addEventListener('click', () => navigateMonth(-1));
-    document.getElementById('next-month-dash').addEventListener('click', () => navigateMonth(1));
-    document.getElementById('prev-month-prod').addEventListener('click', () => navigateMonth(-1));
-    document.getElementById('next-month-prod').addEventListener('click', () => navigateMonth(1));
-
-    // Settings
-    document.getElementById('add-user-btn').addEventListener('click', () => showUserModal());
-    document.getElementById('add-operator-btn').addEventListener('click', () => showOperatorModal());
-    document.getElementById('add-my-operator-btn').addEventListener('click', () => showMyOperatorModal());
-    document.getElementById('add-machine-btn').addEventListener('click', () => showMachineModal());
-    document.getElementById('save-limits-btn').addEventListener('click', saveLimits);
-
-    // Reports
-    document.getElementById('generate-report').addEventListener('click', generateReport);
-    document.getElementById('export-pdf').addEventListener('click', exportToPDF);
-    document.getElementById('export-excel').addEventListener('click', exportToExcel);
-    document.getElementById('report-type').addEventListener('change', updateFilterVisibility);
-
-    // Closing
-    document.getElementById('close-month-btn').addEventListener('click', closeMonth);
-}
-function updateLastAccessCard() {
-    const currentUser = getCurrentUser();
-    
-    if (currentUser) {
-        const levelNames = {
-            'admin': 'Administrador',
-            'supervisor': 'Supervisor',
-            'operador': 'Operador'
-        };
-        
-        const now = new Date();
-        const timeString = now.toLocaleTimeString('pt-BR', { 
-            hour: '2-digit', 
-            minute: '2-digit' 
-        });
-        const dateString = now.toLocaleDateString('pt-BR');
-        
-        document.getElementById('last-access-name').textContent = currentUser.name || 'Usuário';
-        document.getElementById('last-access-username').textContent = currentUser.username || '-';
-        document.getElementById('last-access-level').textContent = levelNames[currentUser.level] || currentUser.level;
-        document.getElementById('last-access-time').textContent = `${timeString} - ${dateString}`;
-    }
-}
-
-// Chamar quando mostrar a tab de settings
-document.getElementById('settings-tab').addEventListener('click', () => {
-    updateLastAccessCard();
-});
-
-
 // Firebase já inicializado, usar a referência do database
 const usersRef = database.ref('users');
 const accessLogsRef = database.ref('accessLogs');
@@ -662,6 +568,50 @@ function setUserOfflineFirebase(userId) {
     });
 }
 
+// Atualizar card de último acesso
+function updateLastAccessCard() {
+    // Pegar o usuário atual do localStorage
+    const savedUser = localStorage.getItem('currentUser');
+    
+    if (!savedUser) {
+        console.log('Nenhum usuário logado');
+        return;
+    }
+    
+    const { id } = JSON.parse(savedUser);
+    
+    // Buscar dados atualizados do Firebase
+    usersRef.child(id).once('value', (snapshot) => {
+        const currentUser = snapshot.val();
+        
+        if (currentUser) {
+            const levelNames = {
+                'admin': 'Administrador',
+                'supervisor': 'Supervisor',
+                'operador': 'Operador'
+            };
+            
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('pt-BR', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            const dateString = now.toLocaleDateString('pt-BR');
+            
+            // Atualizar elementos na tela
+            const nameElement = document.getElementById('last-access-name');
+            const usernameElement = document.getElementById('last-access-username');
+            const levelElement = document.getElementById('last-access-level');
+            const timeElement = document.getElementById('last-access-time');
+            
+            if (nameElement) nameElement.textContent = currentUser.name || 'Usuário';
+            if (usernameElement) usernameElement.textContent = currentUser.username || '-';
+            if (levelElement) levelElement.textContent = levelNames[currentUser.level] || currentUser.level;
+            if (timeElement) timeElement.textContent = `${timeString} - ${dateString}`;
+        }
+    });
+}
+
 function handleLogin(e) {
     e.preventDefault();
     const username = document.getElementById('login-username').value;
@@ -694,6 +644,9 @@ function handleLogin(e) {
             
             showMainApp();
             showToast('Login realizado com sucesso!');
+            
+            // Atualizar card de último acesso
+            updateLastAccessCard();
         } else {
             const errorDiv = document.getElementById('login-error');
             if (errorDiv) {
@@ -721,12 +674,83 @@ function handleLogout() {
     }
 }
 
+function setupEventListeners() {
+    // Login
+    document.getElementById('login-form').addEventListener('submit', handleLogin);
+
+    // Logout
+    document.getElementById('logout-btn').addEventListener('click', handleLogout);
+
+    // Tab navigation
+    document.querySelectorAll('.tab-btn, .mobile-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+
+    // Mobile more menu
+    const mobileMoreBtn = document.getElementById('mobile-more-btn');
+    const mobileMoreMenu = document.getElementById('mobile-more-menu');
+
+    mobileMoreBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        mobileMoreMenu.classList.toggle('active');
+    });
+
+    document.querySelectorAll('.mobile-more-item').forEach(item => {
+        item.addEventListener('click', () => {
+            switchTab(item.dataset.tab);
+            mobileMoreMenu.classList.remove('active');
+        });
+    });
+
+    document.addEventListener('click', () => {
+        mobileMoreMenu.classList.remove('active');
+    });
+
+    // Machine tabs
+    document.querySelectorAll('.machine-tab').forEach(btn => {
+        btn.addEventListener('click', () => switchMachine(btn.dataset.machine));
+    });
+
+    // View toggle buttons
+    document.getElementById('calendar-view-btn').addEventListener('click', () => toggleProductionView('calendar'));
+    document.getElementById('table-view-btn').addEventListener('click', () => toggleProductionView('table'));
+
+    // Month navigation
+    document.getElementById('prev-month-dash').addEventListener('click', () => navigateMonth(-1));
+    document.getElementById('next-month-dash').addEventListener('click', () => navigateMonth(1));
+    document.getElementById('prev-month-prod').addEventListener('click', () => navigateMonth(-1));
+    document.getElementById('next-month-prod').addEventListener('click', () => navigateMonth(1));
+
+    // Settings
+    document.getElementById('add-user-btn').addEventListener('click', () => showUserModal());
+    document.getElementById('add-operator-btn').addEventListener('click', () => showOperatorModal());
+    document.getElementById('add-my-operator-btn').addEventListener('click', () => showMyOperatorModal());
+    document.getElementById('add-machine-btn').addEventListener('click', () => showMachineModal());
+    document.getElementById('save-limits-btn').addEventListener('click', saveLimits);
+
+    // Reports
+    document.getElementById('generate-report').addEventListener('click', generateReport);
+    document.getElementById('export-pdf').addEventListener('click', exportToPDF);
+    document.getElementById('export-excel').addEventListener('click', exportToExcel);
+    document.getElementById('report-type').addEventListener('change', updateFilterVisibility);
+
+    // Closing
+    document.getElementById('close-month-btn').addEventListener('click', closeMonth);
+    
+    // Settings tab - atualizar card ao clicar
+    const settingsTabBtns = document.querySelectorAll('[data-tab="settings"]');
+    settingsTabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            updateLastAccessCard();
+        });
+    });
+}
+
 // Inicializar listener quando a página carregar
 document.addEventListener('DOMContentLoaded', function() {
     setupAccessLogsListener();
+    updateLastAccessCard();
 });
-
-
 
 function showMainApp() {
     document.getElementById('login-screen').classList.add('hidden');
