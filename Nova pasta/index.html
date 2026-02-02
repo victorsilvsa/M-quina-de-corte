@@ -358,90 +358,83 @@
                         </div>
                     </div>
                 </div><!-- Settings -->
-                <div id="settings-content" class="tab-content hidden p-4 max-w-7xl mx-auto"><!-- Grid de Settings -->
-                    <div class="settings-grid"><!-- Usuários -->
-                        <div class="settings-section">
-                            <div class="flex items-center justify-between mb-3">
-                                <h3 class="flex items-center gap-2"><i class="fas fa-users text-cyan-500"></i> Usuários
-                                </h3><button id="add-user-btn"
-                                    class="primary-gradient text-white px-2.5 py-1.5 rounded-lg font-medium text-xs hover:opacity-90 transition-all flex items-center gap-1.5">
-                                    <i class="fas fa-plus text-xs"></i> Novo </button>
-                            </div>
-                            <div class="table-wrapper">
-                                <table class="modern-table">
-                                    <thead>
-                                        <tr>
-                                            <th><i class="fas fa-user"></i>Usuário</th>
-                                            <th><i class="fas fa-id-card"></i>Nome</th>
-                                            <th><i class="fas fa-shield-alt"></i>Nível</th>
-                                            <th><i class="fas fa-clock"></i>Turno</th>
-                                            <th><i class="fas fa-tools"></i>Ações</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="users-table-body"></tbody>
-                                </table>
-                            </div>
-                        </div><!-- Operadores -->
-                        <div class="settings-section">
-                            <div class="flex items-center justify-between mb-3">
-                                <h3 class="flex items-center gap-2"><i class="fas fa-hard-hat text-cyan-500"></i>
-                                    Operadores</h3><button id="add-operator-btn"
-                                    class="primary-gradient text-white px-2.5 py-1.5 rounded-lg font-medium text-xs hover:opacity-90 transition-all flex items-center gap-1.5">
-                                    <i class="fas fa-plus text-xs"></i> Novo </button>
-                            </div>
-                            <div class="table-wrapper">
-                                <table class="modern-table">
-                                    <thead>
-                                        <tr>
-                                            <th><i class="fas fa-user"></i>Nome</th>
-                                            <th><i class="fas fa-clock"></i>Turno</th>
-                                            <th><i class="fas fa-tools"></i>Ações</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="operators-table-body"></tbody>
-                                </table>
-                            </div>
-                        </div><!-- Máquinas -->
-                        <div class="settings-section">
-                            <div class="flex items-center justify-between mb-3">
-                                <h3 class="flex items-center gap-2"><i class="fas fa-cogs text-cyan-500"></i> Máquinas
-                                </h3><button id="add-machine-btn"
-                                    class="primary-gradient text-white px-2.5 py-1.5 rounded-lg font-medium text-xs hover:opacity-90 transition-all flex items-center gap-1.5">
-                                    <i class="fas fa-plus text-xs"></i> Nova </button>
-                            </div>
-                            <div class="table-wrapper">
-                                <table class="modern-table">
-                                    <thead>
-                                        <tr>
-                                            <th><i class="fas fa-tag"></i>Nome</th>
-                                            <th><i class="fas fa-bullseye"></i>Meta Diária</th>
-                                            <th><i class="fas fa-tools"></i>Ações</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="machines-table-body"></tbody>
-                                </table>
-                            </div>
-                        </div><!-- Limites de Classificação - Ocupa largura total -->
-                        <div class="settings-section settings-full-width">
-                            <h3 class="flex items-center gap-2 mb-4"><i class="fas fa-sliders-h text-cyan-500"></i>
-                                Limites de Classificação</h3>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
-                                <div><label class="block text-sm font-medium text-gray-700 mb-1.5"> Produção Baixa (até)
-                                    </label> <input type="number" id="low-limit" value="500"
-                                        class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-cyan-500 text-sm">
-                                </div>
-                                <div><label class="block text-sm font-medium text-gray-700 mb-1.5"> Produção Alta (acima
-                                        de) </label> <input type="number" id="high-limit" value="1000"
-                                        class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-cyan-500 text-sm">
-                                </div>
-                                <div class="sm:col-span-2 lg:col-span-1"><button id="save-limits-btn"
-                                        class="primary-gradient text-white px-4 py-2 rounded-lg font-medium text-sm hover:opacity-90 transition-all flex items-center gap-2 w-full justify-center">
-                                        <i class="fas fa-save"></i> Salvar </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+ <div id="settings-content" class="tab-content hidden p-4 max-w-7xl mx-auto"><!-- Grid de Settings -->
+   <div class="settings-grid"><!-- Usuários -->
+    <div class="settings-section">
+     <div class="flex items-center justify-between mb-3">
+      <h3 class="flex items-center gap-2"><i class="fas fa-users text-cyan-500"></i> Usuários</h3><button id="add-user-btn" class="primary-gradient text-white px-2.5 py-1.5 rounded-lg font-medium text-xs hover:opacity-90 transition-all flex items-center gap-1.5"> <i class="fas fa-plus text-xs"></i> Novo </button>
+     </div>
+     <div class="table-wrapper">
+      <table class="modern-table">
+       <thead>
+        <tr>
+         <th><i class="fas fa-user"></i>Usuário</th>
+         <th><i class="fas fa-id-card"></i>Nome</th>
+         <th><i class="fas fa-shield-alt"></i>Nível</th>
+         <th><i class="fas fa-clock"></i>Turno</th>
+         <th><i class="fas fa-tools"></i>Ações</th>
+        </tr>
+       </thead>
+       <tbody id="users-table-body"></tbody>
+      </table>
+     </div>
+    </div><!-- Operadores -->
+    <div class="settings-section">
+     <div class="flex items-center justify-between mb-3">
+      <h3 class="flex items-center gap-2"><i class="fas fa-hard-hat text-cyan-500"></i> Operadores</h3><button id="add-operator-btn" class="primary-gradient text-white px-2.5 py-1.5 rounded-lg font-medium text-xs hover:opacity-90 transition-all flex items-center gap-1.5"> <i class="fas fa-plus text-xs"></i> Novo </button>
+     </div>
+     <div class="table-wrapper">
+      <table class="modern-table">
+       <thead>
+        <tr>
+         <th><i class="fas fa-user"></i>Nome</th>
+         <th><i class="fas fa-clock"></i>Turno</th>
+         <th><i class="fas fa-tools"></i>Ações</th>
+        </tr>
+       </thead>
+       <tbody id="operators-table-body"></tbody>
+      </table>
+     </div>
+    </div><!-- Máquinas -->
+    <div class="settings-section">
+     <div class="flex items-center justify-between mb-3">
+      <h3 class="flex items-center gap-2"><i class="fas fa-cogs text-cyan-500"></i> Máquinas</h3><button id="add-machine-btn" class="primary-gradient text-white px-2.5 py-1.5 rounded-lg font-medium text-xs hover:opacity-90 transition-all flex items-center gap-1.5"> <i class="fas fa-plus text-xs"></i> Nova </button>
+     </div>
+     <div class="table-wrapper">
+      <table class="modern-table">
+       <thead>
+        <tr>
+         <th><i class="fas fa-tag"></i>Nome</th>
+         <th><i class="fas fa-bullseye"></i>Meta Diária</th>
+         <th><i class="fas fa-tools"></i>Ações</th>
+        </tr>
+       </thead>
+       <tbody id="machines-table-body"></tbody>
+      </table>
+     </div>
+    </div><!-- Últimos Acessos -->
+    <div class="settings-section" style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
+   <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+    <h3 style="display: flex; align-items: center; gap: 0.5rem; margin: 0; font-size: 1rem; font-weight: 600;"><i class="fas fa-history text-cyan-500"></i> Últimos Acessos</h3><span style="font-size: 0.75rem; color: #6b7280;">Últimos 3</span>
+   </div>
+   <div style="background: #f9fafb; border-radius: 8px; padding: 1rem; min-height: 200px; overflow: hidden;">
+    <div id="access-log-container" style="display: flex; flex-direction: column; gap: 0.5rem; overflow: hidden;"><!-- Os registros serão inseridos aqui dinamicamente -->
+    </div>
+   </div>
+  </div><!-- Limites de Classificação - Ocupa largura total -->
+    <div class="settings-section settings-full-width">
+     <h3 class="flex items-center gap-2 mb-4"><i class="fas fa-sliders-h text-cyan-500"></i> Limites de Classificação</h3>
+     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+      <div><label class="block text-sm font-medium text-gray-700 mb-1.5"> Produção Baixa (até) </label> <input type="number" id="low-limit" value="500" class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-cyan-500 text-sm">
+      </div>
+      <div><label class="block text-sm font-medium text-gray-700 mb-1.5"> Produção Alta (acima de) </label> <input type="number" id="high-limit" value="1000" class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-cyan-500 text-sm">
+      </div>
+      <div class="sm:col-span-2 lg:col-span-1"><button id="save-limits-btn" class="primary-gradient text-white px-4 py-2 rounded-lg font-medium text-sm hover:opacity-90 transition-all flex items-center gap-2 w-full justify-center"> <i class="fas fa-save"></i> Salvar </button>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
             </main><!-- Mobile More Menu -->
             <div id="mobile-more-menu" class="mobile-more-menu">
                 <div class="mobile-more-item" data-tab="operators" id="mobile-more-operators"><i
