@@ -1,14 +1,14 @@
 
 // Firebase Configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyCRJQcqfJ3nas1q7CnS0yk9OMjdSWHEIT8",
-    authDomain: "ponto-91f0b.firebaseapp.com",
-    databaseURL: "https://ponto-91f0b-default-rtdb.firebaseio.com",
-    projectId: "ponto-91f0b",
-    storageBucket: "ponto-91f0b.firebasestorage.app",
-    messagingSenderId: "122709669842",
-    appId: "1:122709669842:web:79112a035b67731a8f7a0b",
-    measurementId: "G-5RRGZVRQQG"
+  apiKey: "AIzaSyCRJQcqfJ3nas1q7CnS0yk9OMjdSWHEIT8",
+  authDomain: "ponto-91f0b.firebaseapp.com",
+  databaseURL: "https://ponto-91f0b-default-rtdb.firebaseio.com",
+  projectId: "ponto-91f0b",
+  storageBucket: "ponto-91f0b.firebasestorage.app",
+  messagingSenderId: "122709669842",
+  appId: "1:122709669842:web:79112a035b67731a8f7a0b",
+  measurementId: "G-5RRGZVRQQG"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -41,20 +41,124 @@ function canViewAllShifts() {
 }
 
 function formatDate(dateStr) {
+    // ✅ Validação de entrada
+    if (!dateStr || typeof dateStr !== 'string') {
+        return 'Data inválida';
+    }
+
+    // ✅ Cria a data de forma segura
     const date = new Date(dateStr + 'T00:00:00');
+    
+    // ✅ Valida se a data é válida
+    if (isNaN(date.getTime())) {
+        return 'Data inválida';
+    }
+
     const days = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
     const months = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-    return `${days[date.getDay()]}, ${date.getDate()} ${months[date.getMonth()]}`;
+    
+    // ✅ Garante que os índices são válidos
+    const dayIndex = date.getDay();
+    const monthIndex = date.getMonth();
+    const dayNumber = date.getDate();
+    
+    // ✅ Validação extra dos índices
+    if (dayIndex < 0 || dayIndex > 6 || monthIndex < 0 || monthIndex > 11) {
+        return 'Data inválida';
+    }
+    
+    return `${days[dayIndex]}, ${dayNumber} ${months[monthIndex]}`;
 }
+
 
 function formatMonthYear(date) {
-    const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-    return `${months[date.getMonth()]} ${date.getFullYear()}`;
+    const monthKey = getMonthKey(date);
+    const [year, month] = monthKey.split('-').map(Number);
+
+    const monthNames = [
+        'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+
+    const monthNamesShort = [
+        'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+        'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
+    ];
+
+    // Get the date range for this custom month
+    const { startDate, endDate } = getCustomMonthRange(new Date(year, month - 1, 1));
+
+    const startDay = startDate.getDate();
+    const startMonthName = monthNamesShort[startDate.getMonth()];
+    const endDay = endDate.getDate();
+    const endMonthName = monthNamesShort[endDate.getMonth()];
+
+    return `${monthNames[month - 1]} de ${year} (${startDay}/${startMonthName} - ${endDay}/${endMonthName})`;
 }
 
+
 function getMonthKey(date) {
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    const d = new Date(date);
+    const day = d.getDate();
+    const month = d.getMonth();
+    const year = d.getFullYear();
+
+    // If day is >= 26, we're in the NEXT custom month
+    if (day >= 26) {
+        const nextMonth = new Date(year, month + 1, 1);
+        return `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2, '0')}`;
+    }
+
+    // If day is < 26, we're in the CURRENT custom month
+    return `${year}-${String(month + 1).padStart(2, '0')}`;
 }
+
+function getCustomMonthRange(refDate) {
+    const monthKey = getMonthKey(refDate);
+    const [year, month] = monthKey.split('-').map(Number);
+
+    // Start date: 26th of PREVIOUS month
+    const startDate = new Date(year, month - 2, 26);
+
+    // End date: 25th of CURRENT month
+    const endDate = new Date(year, month - 1, 25);
+
+    return { startDate, endDate };
+}
+
+
+function isDateInCustomMonth(dateStr, refDate) {
+    // ✅ Validação de entrada dateStr
+    if (!dateStr || typeof dateStr !== 'string') {
+        return false;
+    }
+
+    // ✅ Validação de entrada refDate
+    if (!refDate || !(refDate instanceof Date) || isNaN(refDate.getTime())) {
+        return false;
+    }
+
+    // ✅ Cria a data de forma segura
+    const date = new Date(dateStr + 'T00:00:00');
+    
+    // ✅ Valida se a data é válida
+    if (isNaN(date.getTime())) {
+        return false;
+    }
+
+    // ✅ Obtém as chaves dos meses
+    const targetMonthKey = getMonthKey(refDate);
+    const dateMonthKey = getMonthKey(date);
+
+    // ✅ Validação das chaves (caso getMonthKey retorne null/undefined)
+    if (!targetMonthKey || !dateMonthKey) {
+        return false;
+    }
+
+    return dateMonthKey === targetMonthKey;
+}
+
+
 
 function showToast(message, type = 'success') {
     const container = document.getElementById('toast-container');
@@ -135,12 +239,33 @@ function isMonthClosed(monthKey) {
 }
 
 function getFilteredProductions() {
-    let filtered = Object.entries(productions).map(([id, data]) => ({ id, ...data }));
+    // Verifica se productions existe e é um objeto válido
+    if (!productions || typeof productions !== 'object') {
+        return [];
+    }
+
+    let filtered = Object.entries(productions)
+        .filter(([id, data]) => data && typeof data === 'object') // ✅ Filtra entradas inválidas
+        .map(([id, data]) => ({ id, ...data }));
 
     if (!canViewAllShifts()) {
         const userShift = getUserShift();
-        const allowedOperators = Object.keys(operators).filter(id => operators[id].shift === userShift);
-        filtered = filtered.filter(p => allowedOperators.includes(p.operatorId));
+        
+        // ✅ Verifica se operators existe antes de filtrar
+        if (!operators || typeof operators !== 'object') {
+            return [];
+        }
+        
+        const allowedOperators = Object.keys(operators)
+            .filter(id => operators[id] && operators[id].shift === userShift);
+        
+        // ✅ Filtra apenas se houver operadores válidos
+        if (allowedOperators.length > 0) {
+            filtered = filtered.filter(p => p.operatorId && allowedOperators.includes(p.operatorId));
+        } else {
+            // Se não há operadores do turno do usuário, retorna vazio
+            return [];
+        }
     }
 
     return filtered;
@@ -454,10 +579,21 @@ function toggleProductionView(view) {
 }
 
 function navigateMonth(delta) {
-    currentMonth.setMonth(currentMonth.getMonth() + delta);
+    // Get current custom month range
+    const { startDate } = getCustomMonthRange(currentMonth);
+
+    // Move by delta months from the start of the current custom month
+    const newDate = new Date(startDate);
+    newDate.setMonth(newDate.getMonth() + delta);
+
+    currentMonth = newDate;
+
     updateDashboard();
     updateProductionView();
 }
+
+
+
 
 // Dashboard
 function updateDashboard() {
@@ -465,7 +601,10 @@ function updateDashboard() {
     document.getElementById('current-month-dash').textContent = formatMonthYear(currentMonth);
     document.getElementById('current-month-prod').textContent = formatMonthYear(currentMonth);
 
-    const filtered = getFilteredProductions().filter(p => p.date.startsWith(monthKey));
+    // Filter by CUSTOM month
+    const filtered = getFilteredProductions().filter(p =>
+        isDateInCustomMonth(p.date, currentMonth)
+    );
 
     const totalQuantity = filtered.reduce((sum, p) => sum + (p.quantity || 0), 0);
     const totalDowntime = filtered.reduce((sum, p) => sum + (p.downtime || 0), 0);
@@ -522,11 +661,12 @@ function updateDashboard() {
     document.getElementById('recent-records').innerHTML = recentHtml || '<p class="text-gray-500 text-center py-4">Nenhum registro</p>';
 }
 
+
+
 // Production View
 function updateProductionView() {
     const monthKey = getMonthKey(currentMonth);
-    const year = currentMonth.getFullYear();
-    const month = currentMonth.getMonth();
+    const { startDate, endDate } = getCustomMonthRange(currentMonth);
 
     const currentMachine = Object.entries(machines).find(([id, m]) => m.name.includes(selectedMachine));
 
@@ -538,24 +678,26 @@ function updateProductionView() {
 
     const [machineId, machineData] = currentMachine;
     const filtered = getFilteredProductions().filter(p =>
-        p.date.startsWith(monthKey) && p.machineId === machineId
+        isDateInCustomMonth(p.date, currentMonth) && p.machineId === machineId
     );
 
-    // Calendar
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
+    // Calendar - iterate from 26th to 25th
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     let calendarHtml = '';
+    const currentDate = new Date(startDate);
 
-    for (let i = 0; i < firstDay.getDay(); i++) {
+    // Add empty cells for days before the start day of week
+    const firstDayOfWeek = startDate.getDay();
+    for (let i = 0; i < firstDayOfWeek; i++) {
         calendarHtml += '<div class="aspect-square"></div>';
     }
 
-    for (let day = 1; day <= lastDay.getDate(); day++) {
-        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const dayDate = new Date(year, month, day);
+    // Iterate through all days in the custom month (26th to 25th)
+    while (currentDate <= endDate) {
+        const dateStr = currentDate.toISOString().split('T')[0];
+        const dayDate = new Date(currentDate);
         const hasData = filtered.some(p => p.date === dateStr);
         const isFuture = dayDate > today;
         const isToday = dayDate.getTime() === today.getTime();
@@ -575,28 +717,31 @@ function updateProductionView() {
         const dayProduction = filtered.find(p => p.date === dateStr);
 
         calendarHtml += `
-  <div class="${dayClass}" data-date="${dateStr}"
-    ${isFuture ? '' : `
-      onclick="${dayProduction
+          <div class="${dayClass}" data-date="${dateStr}"
+            ${isFuture ? '' : `
+              onclick="${dayProduction
                     ? `showProductionModal('${dateStr}', '${dayProduction.id}')`
                     : `showProductionModal('${dateStr}')`
                 }"
-    `}>
-    ${day}
-  </div>
-`;
+            `}>
+            ${currentDate.getDate()}
+          </div>
+        `;
 
+        // Move to next day
+        currentDate.setDate(currentDate.getDate() + 1);
     }
 
     document.getElementById('calendar-days').innerHTML = calendarHtml;
 
-    // Table
+    // Table - iterate from 26th to 25th
     const isClosed = isMonthClosed(monthKey);
     let tableHtml = '';
 
-    for (let day = 1; day <= lastDay.getDate(); day++) {
-        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const dayDate = new Date(year, month, day);
+    const tableDate = new Date(startDate);
+    while (tableDate <= endDate) {
+        const dateStr = tableDate.toISOString().split('T')[0];
+        const dayDate = new Date(tableDate);
         const isFuture = dayDate > today;
         const dayProds = filtered.filter(p => p.date === dateStr);
 
@@ -641,10 +786,14 @@ function updateProductionView() {
             </tr>
           `;
         }
+
+        // Move to next day
+        tableDate.setDate(tableDate.getDate() + 1);
     }
 
     document.getElementById('monthly-table-body').innerHTML = tableHtml || '<tr><td colspan="6" class="text-center py-8 text-gray-500">Nenhum registro</td></tr>';
 }
+
 async function showProductionModal(date, productionId = null) {
     const monthKey = getMonthKey(new Date(date + 'T00:00:00'));
 
@@ -1552,28 +1701,80 @@ async function saveLimits() {
 
 
 // Reports
-function populateFilterSelects() {
-    const machineOptions = Object.entries(machines).map(([id, m]) =>
-        `<option value="${id}">${m.name}</option>`
-    ).join('');
-    document.getElementById('filter-machine').innerHTML = `<option value="">Todas</option>${machineOptions}`;
+// Função para popular os filtros com dados do Firebase
+async function populateFilterSelects() {
+    try {
+        // Buscar máquinas do Firebase
+        const machinesRef = window.firebase.database().ref('machines');
+        const machinesSnapshot = await machinesRef.once('value');
+        
+        if (machinesSnapshot.exists()) {
+            const machinesData = machinesSnapshot.val();
+            const machineOptions = Object.entries(machinesData).map(([id, m]) =>
+                `<option value="${id}">${m.name}</option>`
+            ).join('');
+            document.getElementById('filter-machine').innerHTML = `<option value="">Todas</option>${machineOptions}`;
+        } else {
+            document.getElementById('filter-machine').innerHTML = `<option value="">Todas</option>`;
+        }
 
-    let filteredOps = Object.entries(operators);
-    if (!canViewAllShifts()) {
-        filteredOps = filteredOps.filter(([id, o]) => o.shift === getUserShift());
+        // Buscar operadores do Firebase
+        const operatorsRef = window.firebase.database().ref('operators');
+        const operatorsSnapshot = await operatorsRef.once('value');
+        
+        if (operatorsSnapshot.exists()) {
+            const operatorsData = operatorsSnapshot.val();
+            let filteredOps = Object.entries(operatorsData);
+            
+            // Filtrar por turno se necessário
+            if (!canViewAllShifts()) {
+                const userShift = getUserShift();
+                filteredOps = filteredOps.filter(([id, o]) => o.shift === userShift);
+            }
+
+            const opOptions = filteredOps.map(([id, o]) =>
+                `<option value="${id}">${o.name}</option>`
+            ).join('');
+            document.getElementById('filter-operator').innerHTML = `<option value="">Todos</option>${opOptions}`;
+        } else {
+            document.getElementById('filter-operator').innerHTML = `<option value="">Todos</option>`;
+        }
+    } catch (error) {
+        console.error('Erro ao carregar filtros:', error);
+        document.getElementById('filter-machine').innerHTML = `<option value="">Todas</option>`;
+        document.getElementById('filter-operator').innerHTML = `<option value="">Todos</option>`;
     }
-
-    const opOptions = filteredOps.map(([id, o]) =>
-        `<option value="${id}">${o.name}</option>`
-    ).join('');
-    document.getElementById('filter-operator').innerHTML = `<option value="">Todos</option>${opOptions}`;
 }
 
 function updateFilterVisibility() {
     const reportType = document.getElementById('report-type').value;
-    document.getElementById('filter-machine-container').style.display = reportType === 'machine' ? 'block' : 'none';
-    document.getElementById('filter-operator-container').style.display = reportType === 'operator' ? 'block' : 'none';
-    document.getElementById('filter-shift-container').style.display = reportType === 'shift' ? 'block' : 'none';
+    
+    const machineContainer = document.getElementById('filter-machine-container');
+    const operatorContainer = document.getElementById('filter-operator-container');
+    const shiftContainer = document.getElementById('filter-shift-container');
+    
+    // Esconder todos primeiro
+    if (machineContainer) machineContainer.style.display = 'none';
+    if (operatorContainer) operatorContainer.style.display = 'none';
+    if (shiftContainer) shiftContainer.style.display = 'none';
+    
+    // Mostrar baseado no tipo de relatório
+    switch(reportType) {
+        case 'complete':
+            if (machineContainer) machineContainer.style.display = 'block';
+            if (operatorContainer) operatorContainer.style.display = 'block';
+            if (shiftContainer) shiftContainer.style.display = 'block';
+            break;
+        case 'machine':
+            if (machineContainer) machineContainer.style.display = 'block';
+            break;
+        case 'operator':
+            if (operatorContainer) operatorContainer.style.display = 'block';
+            break;
+        case 'shift':
+            if (shiftContainer) shiftContainer.style.display = 'block';
+            break;
+    }
 }
 
 // ================================
@@ -1591,80 +1792,71 @@ function generateReport() {
     const reportType = document.getElementById('report-type').value;
     let filtered = getFilteredProductions();
 
-   // 🔹 Filtrar por mês atual
-const monthKey = getMonthKey(currentMonth);
-filtered = filtered.filter(p => p.date && p.date.startsWith(monthKey));
+    // Filter by CUSTOM month
+    filtered = filtered.filter(p => isDateInCustomMonth(p.date, currentMonth));
 
-// ================================
-// 🔥 FILTRAR SOMENTE MÁQUINAS 8, 9 e 10 (PRIMEIRO)
-// ================================
-const allowedMachines = ['8', '9', '10'];
+    // ✅ REMOVIDO: Filtro hardcoded de máquinas (8, 9, 10)
+    // Agora usa TODAS as máquinas disponíveis
 
-filtered = filtered.filter(p => {
-    const machine = machines[p.machineId];
-    if (!machine || !machine.name) return false;
-
-    const machineNumber = machine.name.replace(/\D/g, '');
-    return allowedMachines.includes(machineNumber);
-});
-
-// 🔹 Filtros por tipo (DEPOIS DO FILTRO DE MÁQUINAS)
-if (reportType === 'machine') {
-    const machineId = document.getElementById('filter-machine')?.value;
-    if (machineId && machineId !== '') {
-        filtered = filtered.filter(p => p.machineId === machineId);
+    // Apply report type filters
+    if (reportType === 'machine') {
+        const machineId = document.getElementById('filter-machine')?.value;
+        if (machineId && machineId !== '') {
+            filtered = filtered.filter(p => p.machineId === machineId);
+        }
     }
-}
-else if (reportType === 'operator') {
-    const operatorId = document.getElementById('filter-operator')?.value;
-    if (operatorId && operatorId !== '') {
-        filtered = filtered.filter(p => p.operatorId === operatorId);
+    else if (reportType === 'operator') {
+        const operatorId = document.getElementById('filter-operator')?.value;
+        if (operatorId && operatorId !== '') {
+            filtered = filtered.filter(p => p.operatorId === operatorId);
+        }
     }
-}
-else if (reportType === 'shift') {
-    const shift = document.getElementById('filter-shift')?.value;
-    if (shift && shift !== '') {
-        const opIds = Object.keys(operators)
-            .filter(id => operators[id] && operators[id].shift === shift);
-        filtered = filtered.filter(p => opIds.includes(p.operatorId));
+    else if (reportType === 'shift') {
+        const shift = document.getElementById('filter-shift')?.value;
+        if (shift && shift !== '') {
+            const opIds = Object.keys(operators)
+                .filter(id => operators[id] && operators[id].shift === shift);
+            filtered = filtered.filter(p => opIds.includes(p.operatorId));
+        }
     }
-}
 
-// ================================
-// 🔢 ORDENAR: MÁQUINA → DATA
-// ================================
-filtered.sort((a, b) => {
-    const machineA = machines[a.machineId];
-    const machineB = machines[b.machineId];
-    
-    if (!machineA || !machineB || !machineA.name || !machineB.name) return 0;
-    
-    const ma = parseInt(machineA.name.replace(/\D/g, '')) || 0;
-    const mb = parseInt(machineB.name.replace(/\D/g, '')) || 0;
+    // Sort: MACHINE → DATE
+    filtered.sort((a, b) => {
+        const machineA = machines[a.machineId];
+        const machineB = machines[b.machineId];
 
-    if (ma !== mb) return ma - mb;
-    
-    const dateA = new Date(a.date);
-    const dateB = new Date(b.date);
-    return dateA.getTime() - dateB.getTime();
-});
+        if (!machineA || !machineB || !machineA.name || !machineB.name) return 0;
 
+        const ma = parseInt(machineA.name.replace(/\D/g, '')) || 0;
+        const mb = parseInt(machineB.name.replace(/\D/g, '')) || 0;
 
-    // ================================
-    // 📄 PAGINAÇÃO
-    // ================================
+        if (ma !== mb) return ma - mb;
+
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return dateA.getTime() - dateB.getTime();
+    });
+
+    // ✅ OTIMIZADO: Cálculo de estatísticas ANTES da paginação (uma única iteração)
+    const totalQuantity = filtered.reduce((sum, p) => sum + (p.quantity || 0), 0);
+    const totalDowntime = filtered.reduce((sum, p) => sum + (p.downtime || 0), 0);
+    const uniqueDays = [...new Set(filtered.map(p => p.date))].length;
+
+    // Pagination
     const totalPages = Math.ceil(filtered.length / REPORT_PAGE_SIZE) || 1;
     if (reportPage > totalPages) reportPage = totalPages;
 
     const start = (reportPage - 1) * REPORT_PAGE_SIZE;
     const paginated = filtered.slice(start, start + REPORT_PAGE_SIZE);
 
-    // ================================
-    // 🧾 TABELA
-    // ================================
+    // ✅ CORRIGIDO: Usa nomes corretos dos turnos
+    const shiftNames = { '1': 'Turno 1', '2': 'Turno 2', '3': 'Turno 3' };
+
+    // Table
     const tableHtml = paginated.map(p => {
         const machine = machines[p.machineId];
         const operator = operators[p.operatorId];
+        const shiftName = operator?.shift ? shiftNames[operator.shift] || 'Turno 1' : '-';
 
         return `
             <tr class="${getProductionClass(p.quantity)}">
@@ -1694,9 +1886,7 @@ filtered.sort((a, b) => {
             </td>
          </tr>`;
 
-    // ================================
-    // 🔘 CONTROLES DE PAGINAÇÃO
-    // ================================
+    // Pagination controls
     document.getElementById('report-pagination').innerHTML = `
         <div class="flex justify-center items-center gap-3 mt-4">
             <button
@@ -1719,13 +1909,7 @@ filtered.sort((a, b) => {
         </div>
     `;
 
-    // ================================
-    // 📊 RESUMO
-    // ================================
-    const totalQuantity = filtered.reduce((sum, p) => sum + (p.quantity || 0), 0);
-    const totalDowntime = filtered.reduce((sum, p) => sum + (p.downtime || 0), 0);
-    const uniqueDays = [...new Set(filtered.map(p => p.date))].length;
-
+    // ✅ Summary já calculado acima (otimizado)
     document.getElementById('report-summary').innerHTML = `
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div>
@@ -1790,10 +1974,28 @@ async function exportToPDF() {
 
     const { jsPDF } = window.jspdf;
     const monthKey = getMonthKey(currentMonth);
-    const filtered = getFilteredProductions()
-        .filter(p => p.date.startsWith(monthKey))
-        .sort((a, b) => new Date(a.date) - new Date(b.date));
 
+    // ✅ FILTRO ADAPTADO PARA MÊS CUSTOMIZADO (26 a 25)
+    let filtered = getFilteredProductions()
+        .filter(p => isDateInCustomMonth(p.date, currentMonth));
+    
+    // ✅ ORDENAR: MÁQUINA → DATA
+    filtered.sort((a, b) => {
+        const machineA = machines[a.machineId];
+        const machineB = machines[b.machineId];
+        
+        if (!machineA || !machineB || !machineA.name || !machineB.name) return 0;
+        
+        const ma = parseInt(machineA.name.replace(/\D/g, '')) || 0;
+        const mb = parseInt(machineB.name.replace(/\D/g, '')) || 0;
+        
+        if (ma !== mb) return ma - mb;
+        
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return dateA.getTime() - dateB.getTime();
+    });
+    
     if (filtered.length === 0) {
         showToast('Nenhum dado para exportar', 'error');
         return;
@@ -1807,49 +2009,50 @@ async function exportToPDF() {
     const uniqueDays = [...new Set(filtered.map(p => p.date))].length;
     const average = uniqueDays > 0 ? Math.round(totalQuantity / uniqueDays) : 0;
 
-    const statsByShift = { A: { quantity: 0, downtime: 0, count: 0 }, B: { quantity: 0, downtime: 0, count: 0 }, C: { quantity: 0, downtime: 0, count: 0 } };
+    const statsByShift = { '1': { quantity: 0, downtime: 0, count: 0 }, '2': { quantity: 0, downtime: 0, count: 0 }, '3': { quantity: 0, downtime: 0, count: 0 } };
     const operatorStats = {};
-    
-  filtered.forEach(p => {
-    if (!p) return;
 
-    const operator = operators[p.operatorId];
+    filtered.forEach(p => {
+        if (!p) return;
 
-    // normaliza e valida o turno
-    const shift = ['1', '2', '3'].includes(operator?.shift)
-        ? operator.shift
-        : '1';
+        const operator = operators[p.operatorId];
 
-    // garante que o turno exista no objeto
-    if (!statsByShift[shift]) {
-        statsByShift[shift] = { quantity: 0, downtime: 0, count: 0 };
-    }
+        // normaliza e valida o turno
+        const shift = ['1', '2', '3'].includes(operator?.shift)
+            ? operator.shift
+            : '1';
 
-    statsByShift[shift].quantity += p.quantity ?? 0;
-    statsByShift[shift].downtime += p.downtime ?? 0;
-    statsByShift[shift].count++;
+        // garante que o turno exista no objeto
+        if (!statsByShift[shift]) {
+            statsByShift[shift] = { quantity: 0, downtime: 0, count: 0 };
+        }
 
-    // estatísticas por operador
-    if (!operatorStats[p.operatorId]) {
-        operatorStats[p.operatorId] = {
-            name: operator?.name || 'N/A',
-            shift,
-            quantity: 0,
-            downtime: 0,
-            count: 0
-        };
-    }
+        statsByShift[shift].quantity += p.quantity ?? 0;
+        statsByShift[shift].downtime += p.downtime ?? 0;
+        statsByShift[shift].count++;
 
-    operatorStats[p.operatorId].quantity += p.quantity ?? 0;
-    operatorStats[p.operatorId].downtime += p.downtime ?? 0;
-    operatorStats[p.operatorId].count++;
-});
+        // estatísticas por operador
+        if (!operatorStats[p.operatorId]) {
+            operatorStats[p.operatorId] = {
+                name: operator?.name || 'N/A',
+                shift,
+                quantity: 0,
+                downtime: 0,
+                count: 0
+            };
+        }
 
+        operatorStats[p.operatorId].quantity += p.quantity ?? 0;
+        operatorStats[p.operatorId].downtime += p.downtime ?? 0;
+        operatorStats[p.operatorId].count++;
+    });
 
     const topOperators = Object.values(operatorStats).sort((a, b) => b.quantity - a.quantity).slice(0, 5);
 
     const summaryContainer = document.createElement('div');
     summaryContainer.style.cssText = `position: absolute; left: -9999px; top: 0; width: 793px; background: white; font-family: 'Inter', sans-serif;`;
+
+    const appTitle = window.elementSdk?.config?.app_title || 'Controle de Produção';
 
     summaryContainer.innerHTML = `
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1891,7 +2094,7 @@ async function exportToPDF() {
             <div class="pdf-header">
                 <div class="pdf-title">
                     <i class="fas fa-chart-bar"></i>
-                    ${config.app_title || 'Controle de Produção'}
+                    ${appTitle}
                 </div>
                 <div class="pdf-subtitle">Resumo Mensal - ${formatMonthYear(currentMonth)}</div>
                 <div class="pdf-date"><i class="far fa-calendar-alt"></i> Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
@@ -1927,7 +2130,7 @@ async function exportToPDF() {
                 </div>
                 
                 <div class="shift-grid">
-                    ${['A', 'B', 'C'].map(shift => `
+                    ${['1', '2', '3'].map(shift => `
                         <div class="shift-card">
                             <div class="shift-header">
                                 <i class="fas fa-user-clock"></i>
@@ -1977,13 +2180,21 @@ async function exportToPDF() {
 
     try {
         await new Promise(resolve => setTimeout(resolve, 500));
-        const canvas = await html2canvas(summaryContainer, { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' });
+        const canvas = await html2canvas(summaryContainer, { 
+            scale: 2, 
+            useCORS: true, 
+            logging: false, 
+            backgroundColor: '#ffffff',
+            width: 793,
+            windowWidth: 793
+        });
         const imgData = canvas.toDataURL('image/png');
         const pdfWidth = 210;
         const imgHeight = (canvas.height * pdfWidth) / canvas.width;
         pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, imgHeight);
     } catch (error) {
-        console.error('Erro ao gerar resumo:', error);
+        console.error('Erro ao gerar resumo do PDF:', error);
+        showToast('Erro ao gerar página de resumo do PDF', 'error');
     } finally {
         document.body.removeChild(summaryContainer);
     }
@@ -2001,170 +2212,200 @@ async function exportToPDF() {
         pdf.addPage();
 
         const operator = data.operator;
-        const prods = data.productions.sort((a, b) => new Date(a.date) - new Date(b.date));
+        
+        // ✅ ORDENAR: MÁQUINA → DATA (para cada operador)
+        const prods = data.productions.sort((a, b) => {
+            const machineA = machines[a.machineId];
+            const machineB = machines[b.machineId];
+            
+            if (!machineA || !machineB || !machineA.name || !machineB.name) return 0;
+            
+            const ma = parseInt(machineA.name.replace(/\D/g, '')) || 0;
+            const mb = parseInt(machineB.name.replace(/\D/g, '')) || 0;
+            
+            if (ma !== mb) return ma - mb;
+            
+            const dateA = new Date(a.date);
+            const dateB = new Date(b.date);
+            return dateA.getTime() - dateB.getTime();
+        });
+        
         const total = prods.reduce((sum, p) => sum + (p.quantity || 0), 0);
         const downtime = prods.reduce((sum, p) => sum + (p.downtime || 0), 0);
         const uniqueOpDays = [...new Set(prods.map(p => p.date))].length;
         const avgPerDay = uniqueOpDays > 0 ? Math.round(total / uniqueOpDays) : 0;
 
-        const detailContainer = document.createElement('div');
-        detailContainer.style.cssText = `position: absolute; left: -9999px; top: 0; width: 793px; background: white; font-family: 'Inter', sans-serif;`;
+        // ✅ PAGINAÇÃO INTELIGENTE: Dividir registros em grupos que cabem em uma página A4
+        const RECORDS_PER_PAGE = 25; // Quantidade segura de registros por página
+        const totalPages = Math.ceil(prods.length / RECORDS_PER_PAGE);
 
-        detailContainer.innerHTML = `
-            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-            <style>
-                * { margin: 0; padding: 0; box-sizing: border-box; }
-                .pdf-page { width: 793px; min-height: 1122px; background: white; padding: 0; }
+        for (let pageNum = 0; pageNum < totalPages; pageNum++) {
+            if (pageNum > 0) {
+                pdf.addPage();
+            }
+
+            const startIdx = pageNum * RECORDS_PER_PAGE;
+            const endIdx = Math.min(startIdx + RECORDS_PER_PAGE, prods.length);
+            const pageProds = prods.slice(startIdx, endIdx);
+
+            const detailContainer = document.createElement('div');
+            detailContainer.style.cssText = `position: absolute; left: -9999px; top: 0; width: 793px; background: white; font-family: 'Inter', sans-serif;`;
+
+            detailContainer.innerHTML = `
+                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+                <style>
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    .pdf-page { width: 793px; min-height: 1122px; background: white; padding: 0; }
+                    
+                    .pdf-header { background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%); color: white; padding: 14px 30px; display: flex; justify-content: space-between; align-items: center; }
+                    .header-left { flex: 1; }
+                    .pdf-title { font-size: 18px; font-weight: 800; margin-bottom: 2px; }
+                    .pdf-subtitle { font-size: 9px; opacity: 0.95; }
+                    
+                    .operator-info-header { background: rgba(255,255,255,0.15); padding: 6px 10px; border-radius: 6px; }
+                    .operator-name-big { font-size: 13px; font-weight: 800; margin-bottom: 2px; display: flex; align-items: center; gap: 5px; }
+                    .operator-stats-header { display: flex; gap: 10px; font-size: 8px; margin-top: 2px; }
+                    
+                    .content { padding: 14px 30px; }
+                    
+                    .stats-mini-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
+                    .stat-mini-card { background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 5px; padding: 6px; text-align: center; }
+                    .stat-mini-icon { width: 24px; height: 24px; background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%); color: white; border-radius: 5px; display: flex; align-items: center; justify-content: center; margin: 0 auto 4px; font-size: 11px; }
+                    .stat-mini-label { color: #64748b; font-size: 6.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 3px; }
+                    .stat-mini-value { color: #0f172a; font-size: 13px; font-weight: 800; }
+                    
+                    .section-title-small { font-size: 11px; font-weight: 800; color: #0f172a; margin: 10px 0 6px; padding-bottom: 3px; border-bottom: 1.5px solid #0891b2; display: flex; align-items: center; justify-content: space-between; }
+                    .section-title-left { display: flex; align-items: center; gap: 5px; }
+                    .section-title-left i { color: #0891b2; font-size: 11px; }
+                    .page-indicator { font-size: 8px; color: #64748b; font-weight: 600; }
+                    
+                    .prod-table { width: 100%; border-collapse: collapse; background: white; border: 1.5px solid #cbd5e1; border-radius: 7px; overflow: hidden; }
+                    .prod-table thead { background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%); color: white; }
+                    .prod-table th { padding: 7px 8px; text-align: left; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+                    
+                    .prod-table tbody tr { border-bottom: 1px solid #e2e8f0; }
+                    .prod-table tbody tr:last-child { border-bottom: none; }
+                    .prod-table tbody tr:nth-child(even) { background: #f8fafc; }
+                    .prod-table tbody tr:hover { background: #f0f9ff; }
+                    
+                    .prod-table td { padding: 6px 8px; font-size: 9px; color: #1e293b; line-height: 1.4; }
+                    
+                    .prod-table td.date-col { font-weight: 700; color: #0891b2; }
+                    .prod-table td.machine-col { font-weight: 600; }
+                    .prod-table td.quantity-col { font-weight: 800; color: #0891b2; text-align: center; }
+                    .prod-table td.downtime-col { font-weight: 600; color: #64748b; text-align: center; }
+                    .prod-table td.obs-col { color: #64748b; font-style: italic; max-width: 220px; word-wrap: break-word; white-space: normal; }
+                </style>
                 
-                /* 🔧 HEADER - Diminuir: reduzir padding (ex: 14px -> 10px) | Aumentar: aumentar padding */
-                .pdf-header { background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%); color: white; padding: 14px 30px; display: flex; justify-content: space-between; align-items: center; }
-                .header-left { flex: 1; }
-                
-                /* 🔧 TÍTULO - Diminuir: reduzir font-size (ex: 18px -> 14px) | Aumentar: aumentar font-size */
-                .pdf-title { font-size: 18px; font-weight: 800; margin-bottom: 2px; }
-                
-                /* 🔧 SUBTÍTULO - Diminuir: reduzir font-size (ex: 9px -> 7px) | Aumentar: aumentar font-size */
-                .pdf-subtitle { font-size: 9px; opacity: 0.95; }
-                
-                .operator-info-header { background: rgba(255,255,255,0.15); padding: 6px 10px; border-radius: 6px; }
-                
-                /* 🔧 NOME OPERADOR - Diminuir: reduzir font-size (ex: 13px -> 11px) | Aumentar: aumentar font-size */
-                .operator-name-big { font-size: 13px; font-weight: 800; margin-bottom: 2px; display: flex; align-items: center; gap: 5px; }
-                
-                /* 🔧 INFO OPERADOR - Diminuir: reduzir font-size (ex: 8px -> 6px) | Aumentar: aumentar font-size */
-                .operator-stats-header { display: flex; gap: 10px; font-size: 8px; margin-top: 2px; }
-                
-                /* 🔧 PADDING CONTEÚDO - Diminuir: reduzir padding (ex: 14px -> 10px) | Aumentar: aumentar padding */
-                .content { padding: 14px 30px; }
-                
-                /* 🔧 ESPAÇAMENTO CARDS - Diminuir: reduzir gap (ex: 6px -> 4px) | Aumentar: aumentar gap */
-                .stats-mini-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
-                
-                /* 🔧 PADDING CARDS - Diminuir: reduzir padding (ex: 6px -> 4px) | Aumentar: aumentar padding */
-                .stat-mini-card { background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 5px; padding: 6px; text-align: center; }
-                
-                /* 🔧 ÍCONE CARD - Diminuir: reduzir width/height (ex: 24px -> 20px) e font-size | Aumentar: aumentar */
-                .stat-mini-icon { width: 24px; height: 24px; background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%); color: white; border-radius: 5px; display: flex; align-items: center; justify-content: center; margin: 0 auto 4px; font-size: 11px; }
-                
-                /* 🔧 LABEL CARD - Diminuir: reduzir font-size (ex: 6.5px -> 5.5px) | Aumentar: aumentar font-size */
-                .stat-mini-label { color: #64748b; font-size: 6.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 3px; }
-                
-                /* 🔧 VALOR CARD - Diminuir: reduzir font-size (ex: 13px -> 11px) | Aumentar: aumentar font-size */
-                .stat-mini-value { color: #0f172a; font-size: 13px; font-weight: 800; }
-                
-                /* 🔧 TÍTULO SEÇÃO - Diminuir: reduzir font-size e margin | Aumentar: aumentar */
-                .section-title-small { font-size: 11px; font-weight: 800; color: #0f172a; margin: 10px 0 6px; padding-bottom: 3px; border-bottom: 1.5px solid #0891b2; display: flex; align-items: center; gap: 5px; }
-                .section-title-small i { color: #0891b2; font-size: 11px; }
-                
-                /* 🔧 TABELA */
-                .prod-table { width: 100%; border-collapse: collapse; background: white; border: 1.5px solid #cbd5e1; border-radius: 7px; overflow: hidden; }
-                .prod-table thead { background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%); color: white; }
-                
-                /* 🔧 HEADER TABELA - Diminuir: reduzir padding e font-size | Aumentar: aumentar */
-                .prod-table th { padding: 7px 8px; text-align: left; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
-                
-                .prod-table tbody tr { border-bottom: 1px solid #e2e8f0; }
-                .prod-table tbody tr:last-child { border-bottom: none; }
-                .prod-table tbody tr:nth-child(even) { background: #f8fafc; }
-                .prod-table tbody tr:hover { background: #f0f9ff; }
-                
-                /* 🔧 CÉLULAS TABELA - Diminuir: reduzir padding (ex: 6px -> 4px) e font-size | Aumentar: aumentar */
-                .prod-table td { padding: 6px 8px; font-size: 9px; color: #1e293b; line-height: 1.4; }
-                
-                .prod-table td.date-col { font-weight: 700; color: #0891b2; }
-                .prod-table td.machine-col { font-weight: 600; }
-                .prod-table td.quantity-col { font-weight: 800; color: #0891b2; text-align: center; }
-                .prod-table td.downtime-col { font-weight: 600; color: #64748b; text-align: center; }
-                
-                /* 🔧 OBSERVAÇÕES - Agora responsivo com quebra de linha automática */
-                .prod-table td.obs-col { color: #64748b; font-style: italic; max-width: 220px; word-wrap: break-word; white-space: normal; }
-            </style>
-            
-            <div class="pdf-page">
-                <div class="pdf-header">
-                    <div class="header-left">
-                        <div class="pdf-title"><i class="fas fa-industry"></i> ${config.app_title || 'Controle de Produção'}</div>
-                        <div class="pdf-subtitle">${formatMonthYear(currentMonth)}</div>
-                    </div>
-                    <div class="operator-info-header">
-                        <div class="operator-name-big">
-                            <i class="fas fa-user-circle"></i>
-                            ${operator?.name || 'N/A'}
+                <div class="pdf-page">
+                    <div class="pdf-header">
+                        <div class="header-left">
+                            <div class="pdf-title"><i class="fas fa-industry"></i> ${appTitle}</div>
+                            <div class="pdf-subtitle">${formatMonthYear(currentMonth)}</div>
                         </div>
-                        <div class="operator-stats-header">
-                            <span><i class="fas fa-clock"></i> ${getShiftName(operator?.shift || 'A')}</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="content">
-                    <div class="stats-mini-grid">
-                        <div class="stat-mini-card">
-                            <div class="stat-mini-icon"><i class="fas fa-cubes"></i></div>
-                            <div class="stat-mini-label">Total Produzido</div>
-                            <div class="stat-mini-value">${total.toLocaleString()}</div>
-                        </div>
-                        <div class="stat-mini-card">
-                            <div class="stat-mini-icon"><i class="fas fa-chart-line"></i></div>
-                            <div class="stat-mini-label">Média por Dia</div>
-                            <div class="stat-mini-value">${avgPerDay.toLocaleString()}</div>
-                        </div>
-                        <div class="stat-mini-card">
-                            <div class="stat-mini-icon"><i class="fas fa-pause-circle"></i></div>
-                            <div class="stat-mini-label">Tempo Parado</div>
-                            <div class="stat-mini-value">${downtime}h</div>
-                        </div>
-                        <div class="stat-mini-card">
-                            <div class="stat-mini-icon"><i class="fas fa-calendar-check"></i></div>
-                            <div class="stat-mini-label">Dias Trabalhados</div>
-                            <div class="stat-mini-value">${uniqueOpDays}</div>
+                        <div class="operator-info-header">
+                            <div class="operator-name-big">
+                                <i class="fas fa-user-circle"></i>
+                                ${operator?.name || 'N/A'}
+                            </div>
+                            <div class="operator-stats-header">
+                                <span><i class="fas fa-clock"></i> ${getShiftName(operator?.shift || '1')}</span>
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="section-title-small">
-                        <i class="fas fa-table"></i>
-                        Registro Detalhado de Produção
-                    </div>
-                    
-                    <table class="prod-table">
-                        <thead>
-                            <tr>
-                                <th><i class="fas fa-calendar-day"></i> Data</th>
-                                <th><i class="fas fa-cog"></i> Máquina</th>
-                                <th style="text-align: center;"><i class="fas fa-cubes"></i> Produção</th>
-                                <th style="text-align: center;"><i class="fas fa-pause-circle"></i> Paradas</th>
-                                <th><i class="fas fa-comment-dots"></i> Observação</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${prods.map(p => `
+                    <div class="content">
+                        ${pageNum === 0 ? `
+                        <div class="stats-mini-grid">
+                            <div class="stat-mini-card">
+                                <div class="stat-mini-icon"><i class="fas fa-cubes"></i></div>
+                                <div class="stat-mini-label">Total Produzido</div>
+                                <div class="stat-mini-value">${total.toLocaleString()}</div>
+                            </div>
+                            <div class="stat-mini-card">
+                                <div class="stat-mini-icon"><i class="fas fa-chart-line"></i></div>
+                                <div class="stat-mini-label">Média por Dia</div>
+                                <div class="stat-mini-value">${avgPerDay.toLocaleString()}</div>
+                            </div>
+                            <div class="stat-mini-card">
+                                <div class="stat-mini-icon"><i class="fas fa-pause-circle"></i></div>
+                                <div class="stat-mini-label">Tempo Parado</div>
+                                <div class="stat-mini-value">${downtime}h</div>
+                            </div>
+                            <div class="stat-mini-card">
+                                <div class="stat-mini-icon"><i class="fas fa-calendar-check"></i></div>
+                                <div class="stat-mini-label">Dias Trabalhados</div>
+                                <div class="stat-mini-value">${uniqueOpDays}</div>
+                            </div>
+                        </div>
+                        ` : ''}
+                        
+                        <div class="section-title-small">
+                            <div class="section-title-left">
+                                <i class="fas fa-table"></i>
+                                Registro Detalhado de Produção
+                            </div>
+                            ${totalPages > 1 ? `<span class="page-indicator">Página ${pageNum + 1} de ${totalPages}</span>` : ''}
+                        </div>
+                        
+                        <table class="prod-table">
+                            <thead>
                                 <tr>
-                                    <td class="date-col">${formatDate(p.date)}</td>
-                                    <td class="machine-col">${machines[p.machineId]?.name || 'N/A'}</td>
-                                    <td class="quantity-col">${(p.quantity || 0).toLocaleString()} un</td>
-                                    <td class="downtime-col">${p.downtime || 0}h</td>
-                                    <td class="obs-col">${p.observations || '-'}</td>
+                                    <th><i class="fas fa-calendar-day"></i> Data</th>
+                                    <th><i class="fas fa-cog"></i> Máquina</th>
+                                    <th style="text-align: center;"><i class="fas fa-cubes"></i> Produção</th>
+                                    <th style="text-align: center;"><i class="fas fa-pause-circle"></i> Paradas</th>
+                                    <th><i class="fas fa-comment-dots"></i> Observação</th>
                                 </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                ${pageProds.map(p => `
+                                    <tr>
+                                        <td class="date-col">${formatDate(p.date)}</td>
+                                        <td class="machine-col">${machines[p.machineId]?.name || 'N/A'}</td>
+                                        <td class="quantity-col">${(p.quantity || 0).toLocaleString()} un</td>
+                                        <td class="downtime-col">${p.downtime || 0}h</td>
+                                        <td class="obs-col">${p.observations || '-'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
 
-        document.body.appendChild(detailContainer);
+            document.body.appendChild(detailContainer);
 
-        try {
-            await new Promise(resolve => setTimeout(resolve, 300));
-            const canvas = await html2canvas(detailContainer, { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' });
-            const imgData = canvas.toDataURL('image/png');
-            const pdfWidth = 210;
-            const imgHeight = (canvas.height * pdfWidth) / canvas.width;
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, imgHeight);
-        } catch (error) {
-            console.error('Erro ao gerar página do operador:', error);
-        } finally {
-            document.body.removeChild(detailContainer);
+            try {
+                await new Promise(resolve => setTimeout(resolve, 300));
+                const canvas = await html2canvas(detailContainer, { 
+                    scale: 2, 
+                    useCORS: true, 
+                    logging: false, 
+                    backgroundColor: '#ffffff',
+                    width: 793,
+                    windowWidth: 793
+                });
+                const imgData = canvas.toDataURL('image/png');
+                const pdfWidth = 210;
+                const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+                
+                // ✅ Verifica se a altura da imagem cabe em uma página A4 (297mm)
+                const maxPdfHeight = 297;
+                if (imgHeight > maxPdfHeight) {
+                    // Se não cabe, ajusta para caber na página
+                    const adjustedHeight = maxPdfHeight;
+                    const adjustedWidth = (canvas.width * adjustedHeight) / canvas.height;
+                    pdf.addImage(imgData, 'PNG', 0, 0, adjustedWidth, adjustedHeight);
+                } else {
+                    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, imgHeight);
+                }
+            } catch (error) {
+                console.error('Erro ao gerar página do operador:', error);
+                showToast('Erro ao gerar página detalhada do PDF', 'error');
+            } finally {
+                document.body.removeChild(detailContainer);
+            }
         }
     }
 
@@ -2174,142 +2415,690 @@ async function exportToPDF() {
 
 
 
+
+
+
+
 function exportToExcel() {
+    // ✅ FILTRO ADAPTADO PARA MÊS CUSTOMIZADO (26 a 25)
     const filtered = getFilteredProductions()
-        .filter(p => p.date.startsWith(getMonthKey(currentMonth)))
+        .filter(p => isDateInCustomMonth(p.date, currentMonth))
         .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    const data = filtered.map(p => {
+    if (filtered.length === 0) {
+        showToast('Nenhum dado para exportar', 'error');
+        return;
+    }
+
+    // Calcular estatísticas gerais
+    const totalQuantity = filtered.reduce((sum, p) => sum + (p.quantity || 0), 0);
+    const totalDowntime = filtered.reduce((sum, p) => sum + (p.downtime || 0), 0);
+    const uniqueDays = [...new Set(filtered.map(p => p.date))].length;
+    const average = uniqueDays > 0 ? Math.round(totalQuantity / uniqueDays) : 0;
+
+    // Criar workbook
+    const wb = XLSX.utils.book_new();
+
+    // ===== ESTILOS =====
+    const styles = {
+        header: {
+            fill: { fgColor: { rgb: "1F2937" } },
+            font: { bold: true, color: { rgb: "FFFFFF" }, sz: 14 },
+            alignment: { horizontal: "center", vertical: "center" },
+            border: {
+                top: { style: "medium", color: { rgb: "000000" } },
+                bottom: { style: "medium", color: { rgb: "000000" } },
+                left: { style: "medium", color: { rgb: "000000" } },
+                right: { style: "medium", color: { rgb: "000000" } }
+            }
+        },
+        subHeader: {
+            fill: { fgColor: { rgb: "3B82F6" } },
+            font: { bold: true, color: { rgb: "FFFFFF" }, sz: 12 },
+            alignment: { horizontal: "center", vertical: "center" },
+            border: {
+                top: { style: "thin", color: { rgb: "000000" } },
+                bottom: { style: "thin", color: { rgb: "000000" } },
+                left: { style: "thin", color: { rgb: "000000" } },
+                right: { style: "thin", color: { rgb: "000000" } }
+            }
+        },
+        sectionTitle: {
+            fill: { fgColor: { rgb: "10B981" } },
+            font: { bold: true, color: { rgb: "FFFFFF" }, sz: 11 },
+            alignment: { horizontal: "left", vertical: "center" },
+            border: {
+                top: { style: "medium", color: { rgb: "000000" } },
+                bottom: { style: "medium", color: { rgb: "000000" } },
+                left: { style: "medium", color: { rgb: "000000" } },
+                right: { style: "medium", color: { rgb: "000000" } }
+            }
+        },
+        labelCell: {
+            fill: { fgColor: { rgb: "E5E7EB" } },
+            font: { bold: true, sz: 10 },
+            alignment: { horizontal: "left", vertical: "center" },
+            border: {
+                top: { style: "thin", color: { rgb: "9CA3AF" } },
+                bottom: { style: "thin", color: { rgb: "9CA3AF" } },
+                left: { style: "thin", color: { rgb: "9CA3AF" } },
+                right: { style: "thin", color: { rgb: "9CA3AF" } }
+            }
+        },
+        valueCell: {
+            fill: { fgColor: { rgb: "FFFFFF" } },
+            font: { sz: 10 },
+            alignment: { horizontal: "right", vertical: "center" },
+            border: {
+                top: { style: "thin", color: { rgb: "D1D5DB" } },
+                bottom: { style: "thin", color: { rgb: "D1D5DB" } },
+                left: { style: "thin", color: { rgb: "D1D5DB" } },
+                right: { style: "thin", color: { rgb: "D1D5DB" } }
+            }
+        },
+        dataCell: {
+            fill: { fgColor: { rgb: "F9FAFB" } },
+            font: { sz: 10 },
+            alignment: { horizontal: "center", vertical: "center" },
+            border: {
+                top: { style: "thin", color: { rgb: "D1D5DB" } },
+                bottom: { style: "thin", color: { rgb: "D1D5DB" } },
+                left: { style: "thin", color: { rgb: "D1D5DB" } },
+                right: { style: "thin", color: { rgb: "D1D5DB" } }
+            }
+        },
+        highlightRow: {
+            fill: { fgColor: { rgb: "FEF3C7" } },
+            font: { bold: true, sz: 10 },
+            alignment: { horizontal: "center", vertical: "center" },
+            border: {
+                top: { style: "thin", color: { rgb: "F59E0B" } },
+                bottom: { style: "thin", color: { rgb: "F59E0B" } },
+                left: { style: "thin", color: { rgb: "F59E0B" } },
+                right: { style: "thin", color: { rgb: "F59E0B" } }
+            }
+        }
+    };
+
+    // ===== ABA 1: RESUMO =====
+    const summaryData = [
+        ['📊 RELATÓRIO DE PRODUÇÃO'],
+        [`Período: ${formatMonthYear(currentMonth)}`],
+        [`Gerado em: ${new Date().toLocaleString('pt-BR')}`],
+        [],
+        ['📈 ESTATÍSTICAS GERAIS'],
+        ['Métrica', 'Valor'],
+        ['📦 Total Produzido', `${totalQuantity.toLocaleString()} unidades`],
+        ['📊 Média Diária', `${average.toLocaleString()} unidades`],
+        ['⏸️ Tempo Total Parado', `${totalDowntime} horas`],
+        ['📅 Dias Produtivos', `${uniqueDays} dias`],
+        [],
+        ['🔧 PRODUÇÃO POR TURNO'],
+        ['Turno', 'Produção', 'Tempo Parado', 'Registros']
+    ];
+
+    // Calcular por turno
+    const statsByShift = { '1': { quantity: 0, downtime: 0, count: 0 }, '2': { quantity: 0, downtime: 0, count: 0 }, '3': { quantity: 0, downtime: 0, count: 0 } };
+    filtered.forEach(p => {
+        const operator = operators[p.operatorId];
+        const shift = ['1', '2', '3'].includes(operator?.shift) ? operator.shift : '1';
+        statsByShift[shift].quantity += p.quantity || 0;
+        statsByShift[shift].downtime += p.downtime || 0;
+        statsByShift[shift].count++;
+    });
+
+    ['1', '2', '3'].forEach(shift => {
+        const shiftNames = { '1': 'Turno 1', '2': 'Turno 2', '3': 'Turno 3' };
+        summaryData.push([
+            shiftNames[shift],
+            `${statsByShift[shift].quantity.toLocaleString()} un`,
+            `${statsByShift[shift].downtime}h`,
+            statsByShift[shift].count
+        ]);
+    });
+
+    // Top 5 Operadores
+    const operatorStats = {};
+    filtered.forEach(p => {
+        const operator = operators[p.operatorId];
+        if (!operatorStats[p.operatorId]) {
+            operatorStats[p.operatorId] = {
+                name: operator?.name || 'N/A',
+                quantity: 0,
+                downtime: 0
+            };
+        }
+        operatorStats[p.operatorId].quantity += p.quantity || 0;
+        operatorStats[p.operatorId].downtime += p.downtime || 0;
+    });
+
+    const topOperators = Object.values(operatorStats).sort((a, b) => b.quantity - a.quantity).slice(0, 5);
+
+    summaryData.push([]);
+    summaryData.push(['🏆 TOP 5 OPERADORES']);
+    summaryData.push(['Posição', 'Operador', 'Produção', 'Tempo Parado']);
+
+    topOperators.forEach((op, i) => {
+        summaryData.push([
+            `${i + 1}º`,
+            op.name,
+            `${op.quantity.toLocaleString()} un`,
+            `${op.downtime}h`
+        ]);
+    });
+
+    const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+
+    // Aplicar estilos no resumo
+    wsSummary['A1'].s = styles.header;
+    wsSummary['A5'].s = styles.sectionTitle;
+    wsSummary['A12'].s = styles.sectionTitle;
+    wsSummary['A' + (summaryData.length - topOperators.length - 1)].s = styles.sectionTitle;
+
+    // Header das tabelas
+    ['A6', 'B6'].forEach(cell => { if (wsSummary[cell]) wsSummary[cell].s = styles.subHeader; });
+    ['A13', 'B13', 'C13', 'D13'].forEach(cell => { if (wsSummary[cell]) wsSummary[cell].s = styles.subHeader; });
+    
+    const topHeaderRow = summaryData.length - topOperators.length;
+    ['A' + topHeaderRow, 'B' + topHeaderRow, 'C' + topHeaderRow, 'D' + topHeaderRow].forEach(cell => { 
+        if (wsSummary[cell]) wsSummary[cell].s = styles.subHeader; 
+    });
+
+    // Células de dados
+    for (let i = 7; i <= 10; i++) {
+        if (wsSummary['A' + i]) wsSummary['A' + i].s = styles.labelCell;
+        if (wsSummary['B' + i]) wsSummary['B' + i].s = styles.valueCell;
+    }
+
+    for (let i = 14; i <= 16; i++) {
+        ['A', 'B', 'C', 'D'].forEach(col => {
+            if (wsSummary[col + i]) wsSummary[col + i].s = styles.dataCell;
+        });
+    }
+
+    wsSummary['!cols'] = [
+        { wch: 25 },
+        { wch: 20 },
+        { wch: 15 },
+        { wch: 15 }
+    ];
+
+    wsSummary['!rows'] = [
+        { hpx: 25 },
+        { hpx: 20 },
+        { hpx: 20 },
+        { hpx: 10 },
+        { hpx: 22 }
+    ];
+
+    XLSX.utils.book_append_sheet(wb, wsSummary, '📊 Resumo');
+
+    // ===== ABA 2: DADOS DETALHADOS =====
+    const detailedData = filtered.map(p => {
         const machine = machines[p.machineId];
         const operator = operators[p.operatorId];
+        const shiftNames = { '1': 'Turno 1', '2': 'Turno 2', '3': 'Turno 3' };
 
         return {
-            'Data': formatDate(p.date),
-            'Maquina': machine?.name || '-',
-            'Turno': operator?.shift || '-',
-            'Operador': operator?.name || '-',
-            'Quantidade': p.quantity || 0,
-            'Tempo Parado (h)': p.downtime || 0,
-            'Observacoes': p.observations || ''
+            '📅 Data': formatDate(p.date),
+            '🏭 Máquina': machine?.name || '-',
+            '⏰ Turno': shiftNames[operator?.shift] || 'Turno 1',
+            '👤 Operador': operator?.name || '-',
+            '📦 Quantidade': p.quantity || 0,
+            '⏸️ Paradas (h)': p.downtime || 0,
+            '📝 Observações': p.observations || ''
         };
     });
 
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Producao');
-    XLSX.writeFile(wb, `relatorio_${getMonthKey(currentMonth)}.xlsx`);
+    const wsDetails = XLSX.utils.json_to_sheet(detailedData);
 
-    showToast('Excel exportado!');
+    // Estilizar cabeçalho
+    const detailsHeader = ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1'];
+    detailsHeader.forEach(cell => {
+        if (wsDetails[cell]) wsDetails[cell].s = styles.subHeader;
+    });
+
+    // Estilizar células de dados (linhas alternadas)
+    const detailsRange = XLSX.utils.decode_range(wsDetails['!ref']);
+    for (let row = 2; row <= detailsRange.e.r + 1; row++) {
+        const isEven = row % 2 === 0;
+        ['A', 'B', 'C', 'D', 'E', 'F', 'G'].forEach(col => {
+            const cell = col + row;
+            if (wsDetails[cell]) {
+                wsDetails[cell].s = isEven ? styles.dataCell : {
+                    ...styles.dataCell,
+                    fill: { fgColor: { rgb: "FFFFFF" } }
+                };
+            }
+        });
+    }
+
+    wsDetails['!cols'] = [
+        { wch: 12 },
+        { wch: 18 },
+        { wch: 12 },
+        { wch: 25 },
+        { wch: 12 },
+        { wch: 12 },
+        { wch: 40 }
+    ];
+
+    XLSX.utils.book_append_sheet(wb, wsDetails, '📋 Detalhado');
+
+    // ===== ABA 3: PRODUÇÃO POR OPERADOR =====
+    const byOperatorData = [];
+    const operatorGroups = {};
+    const shiftNames = { '1': 'Turno 1', '2': 'Turno 2', '3': 'Turno 3' };
+
+    filtered.forEach(p => {
+        if (!operatorGroups[p.operatorId]) {
+            const operator = operators[p.operatorId];
+            operatorGroups[p.operatorId] = {
+                name: operator?.name || 'N/A',
+                shift: shiftNames[operator?.shift] || 'Turno 1',
+                productions: []
+            };
+        }
+        operatorGroups[p.operatorId].productions.push(p);
+    });
+
+    Object.values(operatorGroups).forEach(group => {
+        const total = group.productions.reduce((sum, p) => sum + (p.quantity || 0), 0);
+        const downtime = group.productions.reduce((sum, p) => sum + (p.downtime || 0), 0);
+
+        byOperatorData.push([
+            `👤 ${group.name}`,
+            `⏰ ${group.shift}`,
+            `📦 ${total.toLocaleString()} un`,
+            `⏸️ ${downtime}h`,
+            `📅 ${group.productions.length} registros`
+        ]);
+
+        byOperatorData.push(['Data', 'Máquina', 'Produção', 'Paradas', 'Observações']);
+
+        group.productions.forEach(p => {
+            byOperatorData.push([
+                formatDate(p.date),
+                machines[p.machineId]?.name || '-',
+                `${p.quantity || 0} un`,
+                `${p.downtime || 0}h`,
+                p.observations || '-'
+            ]);
+        });
+
+        byOperatorData.push([]);
+    });
+
+    const wsOperators = XLSX.utils.aoa_to_sheet(byOperatorData);
+
+    // Estilizar por operador
+    let opRow = 1;
+    Object.values(operatorGroups).forEach(group => {
+        // Header do operador
+        ['A', 'B', 'C', 'D', 'E'].forEach(col => {
+            if (wsOperators[col + opRow]) wsOperators[col + opRow].s = styles.highlightRow;
+        });
+        opRow++;
+
+        // Subheader da tabela
+        ['A', 'B', 'C', 'D', 'E'].forEach(col => {
+            if (wsOperators[col + opRow]) wsOperators[col + opRow].s = styles.subHeader;
+        });
+        opRow++;
+
+        // Dados
+        for (let i = 0; i < group.productions.length; i++) {
+            ['A', 'B', 'C', 'D', 'E'].forEach(col => {
+                if (wsOperators[col + opRow]) wsOperators[col + opRow].s = styles.dataCell;
+            });
+            opRow++;
+        }
+        opRow++; // Linha vazia
+    });
+
+    wsOperators['!cols'] = [
+        { wch: 15 },
+        { wch: 20 },
+        { wch: 15 },
+        { wch: 12 },
+        { wch: 35 }
+    ];
+
+    XLSX.utils.book_append_sheet(wb, wsOperators, '👥 Por Operador');
+
+    // ===== ABA 4: PRODUÇÃO POR MÁQUINA =====
+    const byMachineData = [];
+    const machineGroups = {};
+
+    filtered.forEach(p => {
+        if (!machineGroups[p.machineId]) {
+            machineGroups[p.machineId] = {
+                name: machines[p.machineId]?.name || 'N/A',
+                productions: []
+            };
+        }
+        machineGroups[p.machineId].productions.push(p);
+    });
+
+    Object.values(machineGroups).forEach(group => {
+        const total = group.productions.reduce((sum, p) => sum + (p.quantity || 0), 0);
+        const downtime = group.productions.reduce((sum, p) => sum + (p.downtime || 0), 0);
+
+        byMachineData.push([
+            `🏭 ${group.name}`,
+            `📦 ${total.toLocaleString()} un`,
+            `⏸️ ${downtime}h`,
+            `📅 ${group.productions.length} registros`
+        ]);
+
+        byMachineData.push(['Data', 'Operador', 'Turno', 'Produção', 'Paradas']);
+
+        group.productions.forEach(p => {
+            const operator = operators[p.operatorId];
+            byMachineData.push([
+                formatDate(p.date),
+                operator?.name || '-',
+                shiftNames[operator?.shift] || 'Turno 1',
+                `${p.quantity || 0} un`,
+                `${p.downtime || 0}h`
+            ]);
+        });
+
+        byMachineData.push([]);
+    });
+
+    const wsMachines = XLSX.utils.aoa_to_sheet(byMachineData);
+
+    // Estilizar por máquina
+    let machRow = 1;
+    Object.values(machineGroups).forEach(group => {
+        // Header da máquina
+        ['A', 'B', 'C', 'D'].forEach(col => {
+            if (wsMachines[col + machRow]) wsMachines[col + machRow].s = styles.highlightRow;
+        });
+        machRow++;
+
+        // Subheader da tabela
+        ['A', 'B', 'C', 'D', 'E'].forEach(col => {
+            if (wsMachines[col + machRow]) wsMachines[col + machRow].s = styles.subHeader;
+        });
+        machRow++;
+
+        // Dados
+        for (let i = 0; i < group.productions.length; i++) {
+            ['A', 'B', 'C', 'D', 'E'].forEach(col => {
+                if (wsMachines[col + machRow]) wsMachines[col + machRow].s = styles.dataCell;
+            });
+            machRow++;
+        }
+        machRow++; // Linha vazia
+    });
+
+    wsMachines['!cols'] = [
+        { wch: 15 },
+        { wch: 25 },
+        { wch: 12 },
+        { wch: 15 },
+        { wch: 12 }
+    ];
+
+    XLSX.utils.book_append_sheet(wb, wsMachines, '🏭 Por Máquina');
+
+    // Salvar arquivo
+    const monthKey = getMonthKey(currentMonth);
+    XLSX.writeFile(wb, `relatorio_producao_${monthKey}.xlsx`);
+
+    showToast('Excel exportado com sucesso!');
 }
 
-// Closing
+
+
+
 async function updateClosingView() {
-    if (!['admin', 'leader'].includes(currentUser?.role)) return;
+    // ✅ Validação de permissão
+    if (!currentUser || !['admin', 'leader'].includes(currentUser.role)) return;
 
-    const monthKey = getMonthKey(new Date());
-    document.getElementById('closing-month').value = monthKey;
-
+    // ✅ Validação de elementos DOM
+    const closingMonthEl = document.getElementById('closing-month');
     const statusDiv = document.getElementById('closing-status');
-    const snapshot = await database.ref(`closings/${monthKey}`).once('value');
-    const data = snapshot.val();
+    const historyBody = document.getElementById('closing-history-body');
 
-    if (!data) {
-        statusDiv.innerHTML = `
-            <div class="flex items-center gap-2 text-yellow-600">
-                <i class="fas fa-exclamation-circle"></i>
-                Este mês ainda não foi fechado
-            </div>`;
-    } else if (data.reopened) {
+    if (!closingMonthEl || !statusDiv || !historyBody) {
+        console.error('Elementos DOM não encontrados');
+        return;
+    }
+
+    // ✅ Validação da chave do mês
+    const monthKey = getMonthKey(new Date());
+    if (!monthKey) {
         statusDiv.innerHTML = `
             <div class="flex items-center gap-2 text-red-600">
-                <i class="fas fa-unlock"></i>
-                Mês reaberto por <strong>${data.reopenedBy}</strong>
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Erro ao obter mês atual</span>
             </div>`;
-    } else if (data.closed) {
+        return;
+    }
+
+    closingMonthEl.value = monthKey;
+
+    try {
+        // ✅ Busca dados atualizados do Firebase
+        const snapshot = await database.ref(`closings/${monthKey}`).once('value');
+        const data = snapshot.val();
+
+        if (!data) {
+            statusDiv.innerHTML = `
+                <div class="flex items-center gap-2 text-yellow-600">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>Este mês ainda não foi fechado</span>
+                </div>`;
+        } else if (data.reopened) {
+            statusDiv.innerHTML = `
+                <div class="flex items-center gap-2 text-red-600">
+                    <i class="fas fa-unlock"></i>
+                    <span>Mês reaberto por <strong>${data.reopenedBy || 'Desconhecido'}</strong></span>
+                </div>`;
+        } else if (data.closed) {
+            statusDiv.innerHTML = `
+                <div class="flex items-center gap-2 text-green-600">
+                    <i class="fas fa-lock"></i>
+                    <span>Mês fechado por <strong>${data.closedBy || 'Desconhecido'}</strong></span>
+                </div>`;
+        }
+
+        // ✅ Atualiza botões com base no status atual
+        await updateMonthButtons(monthKey);
+
+    } catch (error) {
+        console.error('Erro ao buscar fechamento:', error);
         statusDiv.innerHTML = `
-            <div class="flex items-center gap-2 text-green-600">
-                <i class="fas fa-lock"></i>
-                Mês fechado por <strong>${data.closedBy}</strong>
+            <div class="flex items-center gap-2 text-red-600">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Erro ao carregar status</span>
             </div>`;
     }
 
-    const historyHtml = Object.entries(closings || {})
-        .sort(([, a], [, b]) => new Date(b.closedAt) - new Date(a.closedAt))
-        .map(([month, c]) => `
-            <tr>
-                <td>${month}</td>
-                <td>${new Date(c.closedAt).toLocaleString('pt-BR')}</td>
-                <td>${c.closedBy}</td>
-                <td class="flex items-center gap-2">
-                    <button onclick="downloadClosingReport('${month}')"
-                        class="text-cyan-600 hover:text-cyan-800">
-                        <i class="fas fa-download mr-1"></i>PDF
-                    </button>
-                    ${c.reopened
-                ? '<span class="text-xs text-red-600"><i class="fas fa-unlock"></i> Reaberto</span>'
-                : '<span class="text-xs text-green-600"><i class="fas fa-lock"></i> Fechado</span>'
-            }
+    // ✅ Busca histórico atualizado do Firebase
+    try {
+        const historySnapshot = await database.ref('closings').once('value');
+        const closingsData = historySnapshot.val() || {};
+
+        const closingsArray = Object.entries(closingsData)
+            .filter(([month, c]) => c && c.closedAt)
+            .sort(([, a], [, b]) => {
+                const dateA = new Date(a.closedAt);
+                const dateB = new Date(b.closedAt);
+                if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) return 0;
+                return dateB.getTime() - dateA.getTime();
+            });
+
+        if (closingsArray.length === 0) {
+            historyBody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="text-center py-8 text-gray-500">
+                        Nenhum fechamento registrado
+                    </td>
+                </tr>`;
+            return;
+        }
+
+        const historyHtml = closingsArray.map(([month, c]) => `
+            <tr class="hover:bg-gray-50">
+                <td class="px-2 py-3 whitespace-nowrap">${month}</td>
+                <td class="px-2 py-3 whitespace-nowrap text-sm">${new Date(c.closedAt).toLocaleString('pt-BR')}</td>
+                <td class="px-2 py-3 whitespace-nowrap">${c.closedBy || 'Desconhecido'}</td>
+                <td class="px-2 py-3">
+                    <div class="flex items-center gap-2 flex-nowrap">
+                        <button onclick="downloadClosingReport('${month}')"
+                            class="text-cyan-600 hover:text-cyan-800 whitespace-nowrap">
+                            <i class="fas fa-download"></i><span class="ml-1 hidden sm:inline">PDF</span>
+                        </button>
+                        ${c.reopened
+                            ? '<span class="text-xs text-red-600 whitespace-nowrap"><i class="fas fa-unlock"></i><span class="hidden sm:inline ml-1">Reaberto</span></span>'
+                            : '<span class="text-xs text-green-600 whitespace-nowrap"><i class="fas fa-lock"></i><span class="hidden sm:inline ml-1">Fechado</span></span>'
+                        }
+                    </div>
                 </td>
             </tr>
         `).join('');
 
-    document.getElementById('closing-history-body').innerHTML =
-        historyHtml ||
-        '<tr><td colspan="4" class="text-center py-8 text-gray-500">Nenhum fechamento</td></tr>';
+        historyBody.innerHTML = historyHtml;
+    } catch (error) {
+        console.error('Erro ao buscar histórico:', error);
+        historyBody.innerHTML = `
+            <tr>
+                <td colspan="4" class="text-center py-8 text-red-500">
+                    Erro ao carregar histórico
+                </td>
+            </tr>`;
+    }
 }
+
+
 
 
 async function closeMonth() {
-    const monthKey = document.getElementById('closing-month').value;
-    if (!monthKey) return;
-
-    const ref = database.ref(`closings/${monthKey}`);
-
-    const snapshot = await ref.once('value');
-    const data = snapshot.val();
-
-    if (data?.closed && !data?.reopened) {
-        showToast('Este mês já está fechado', 'warning');
+    const monthKeyEl = document.getElementById('closing-month');
+    if (!monthKeyEl) return;
+    
+    const monthKey = monthKeyEl.value;
+    if (!monthKey) {
+        showToast('Selecione um mês', 'warning');
         return;
     }
 
-    await ref.set({
-        month: monthKey,
-        closed: true,
-        reopened: false,
-        closedAt: new Date().toISOString(),
-        closedBy: currentUser.name
-    });
+    // ✅ Validação de usuário
+    if (!currentUser || !currentUser.name) {
+        showToast('Usuário não identificado', 'error');
+        return;
+    }
 
-    showToast('Mês fechado com sucesso!', 'success');
-    updateClosingView();
-    updateMonthButtons(monthKey);
+    try {
+        const ref = database.ref(`closings/${monthKey}`);
+        
+        // ✅ Busca dados atualizados antes de fechar
+        const snapshot = await ref.once('value');
+        const data = snapshot.val();
+
+        // ✅ Verifica se já está fechado
+        if (data?.closed && !data?.reopened) {
+            showToast('Este mês já está fechado', 'warning');
+            await updateClosingView();
+            return;
+        }
+
+        // ✅ Fecha o mês
+        await ref.set({
+            month: monthKey,
+            closed: true,
+            reopened: false,
+            closedAt: new Date().toISOString(),
+            closedBy: currentUser.name
+        });
+
+        showToast('Mês fechado com sucesso!', 'success');
+        
+        // ✅ Atualiza a view completamente
+        await updateClosingView();
+        
+    } catch (error) {
+        console.error('Erro ao fechar mês:', error);
+        showToast('Erro ao fechar mês', 'error');
+    }
 }
 
 async function openMonth() {
-    const monthKey = document.getElementById('closing-month').value;
-    if (!monthKey) return;
+    const monthKeyEl = document.getElementById('closing-month');
+    if (!monthKeyEl) return;
+    
+    const monthKey = monthKeyEl.value;
+    if (!monthKey) {
+        showToast('Selecione um mês', 'warning');
+        return;
+    }
 
-    await database.ref(`closings/${monthKey}`).update({
-        reopened: true,
-        reopenedAt: new Date().toISOString(),
-        reopenedBy: currentUser.name
-    });
+    // ✅ Validação de usuário
+    if (!currentUser || !currentUser.name) {
+        showToast('Usuário não identificado', 'error');
+        return;
+    }
 
-    showToast('Mês reaberto!', 'success');
-    updateClosingView();
-    updateMonthButtons(monthKey);
+    try {
+        const ref = database.ref(`closings/${monthKey}`);
+        
+        // ✅ Busca dados antes de abrir
+        const snapshot = await ref.once('value');
+        const data = snapshot.val();
+
+        // ✅ Verifica se existe e está fechado
+        if (!data || !data.closed) {
+            showToast('Este mês não está fechado', 'warning');
+            await updateClosingView();
+            return;
+        }
+
+        // ✅ Verifica se já está reaberto
+        if (data.reopened) {
+            showToast('Este mês já está aberto', 'warning');
+            await updateClosingView();
+            return;
+        }
+
+        // ✅ Reabre o mês
+        await ref.update({
+            reopened: true,
+            reopenedAt: new Date().toISOString(),
+            reopenedBy: currentUser.name
+        });
+
+        showToast('Mês reaberto!', 'success');
+        
+        // ✅ Atualiza a view completamente
+        await updateClosingView();
+        
+    } catch (error) {
+        console.error('Erro ao reabrir mês:', error);
+        showToast('Erro ao reabrir mês', 'error');
+    }
 }
 
 
 async function isMonthClosed(monthKey) {
-    const snapshot = await database.ref(`closings/${monthKey}`).once('value');
-    const data = snapshot.val();
+    if (!monthKey) return false;
 
-    if (!data) return false;
-    if (data.reopened) return false;
+    try {
+        // ✅ Busca dados atualizados do Firebase
+        const snapshot = await database.ref(`closings/${monthKey}`).once('value');
+        const data = snapshot.val();
 
-    return data.closed === true;
+        if (!data) return false;
+        if (data.reopened) return false;
+
+        return data.closed === true;
+    } catch (error) {
+        console.error('Erro ao verificar fechamento:', error);
+        return false;
+    }
 }
 
 async function updateMonthButtons(monthKey) {
@@ -2318,14 +3107,21 @@ async function updateMonthButtons(monthKey) {
     const closeBtn = document.getElementById('close-month-btn');
     const openBtn = document.getElementById('open-month-btn');
 
-    const closed = await isMonthClosed(monthKey);
+    if (!closeBtn || !openBtn) return;
 
-    if (closed) {
-        closeBtn.classList.add('hidden');
-        openBtn.classList.remove('hidden');
-    } else {
-        closeBtn.classList.remove('hidden');
-        openBtn.classList.add('hidden');
+    try {
+        // ✅ Busca status atualizado do Firebase
+        const closed = await isMonthClosed(monthKey);
+
+        if (closed) {
+            closeBtn.classList.add('hidden');
+            openBtn.classList.remove('hidden');
+        } else {
+            closeBtn.classList.remove('hidden');
+            openBtn.classList.add('hidden');
+        }
+    } catch (error) {
+        console.error('Erro ao atualizar botões:', error);
     }
 }
 document.getElementById('closing-month').addEventListener('change', e => {
@@ -2337,10 +3133,27 @@ document.getElementById('open-month-btn').addEventListener('click', openMonth);
 
 async function downloadClosingReport(monthKey) {
     const { jsPDF } = window.jspdf;
-
-    const filtered = getFilteredProductions()
-        .filter(p => p.date.startsWith(monthKey))
-        .sort((a, b) => new Date(a.date) - new Date(b.date));
+  
+    // ✅ ADAPTADO: Filtro usando isDateInCustomMonth com currentMonth
+    let filtered = getFilteredProductions()
+        .filter(p => isDateInCustomMonth(p.date, currentMonth));
+    
+    // ✅ ORDENAR: MÁQUINA → DATA (consistente com exportToPDF)
+    filtered.sort((a, b) => {
+        const machineA = machines[a.machineId];
+        const machineB = machines[b.machineId];
+        
+        if (!machineA || !machineB || !machineA.name || !machineB.name) return 0;
+        
+        const ma = parseInt(machineA.name.replace(/\D/g, '')) || 0;
+        const mb = parseInt(machineB.name.replace(/\D/g, '')) || 0;
+        
+        if (ma !== mb) return ma - mb;
+        
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return dateA.getTime() - dateB.getTime();
+    });
 
     const pdfContainer = document.createElement('div');
     pdfContainer.style.cssText = 'position:absolute;left:-9999px;top:0;background:white;font-family:Inter,sans-serif;';
@@ -2350,19 +3163,14 @@ async function downloadClosingReport(monthKey) {
     const uniqueDays = [...new Set(filtered.map(p => p.date))].length;
     const avgPerDay = uniqueDays > 0 ? Math.round(totalQuantity / uniqueDays) : 0;
 
-    // Função auxiliar para formatar o monthKey
-    function formatMonthKeyToText(monthKey) {
-        const [year, month] = monthKey.split('-');
-        const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
-                            'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-        return `${monthNames[parseInt(month) - 1]} de ${year}`;
-    }
+    // ✅ ADAPTADO: Usar formatMonthYear que já considera 26-25
+    const periodText = formatMonthYear(currentMonth);
 
     // Estatísticas por turno
-    const statsByShift = { A: { quantity: 0, downtime: 0, count: 0 }, B: { quantity: 0, downtime: 0, count: 0 }, C: { quantity: 0, downtime: 0, count: 0 } };
+    const statsByShift = { '1': { quantity: 0, downtime: 0, count: 0 }, '2': { quantity: 0, downtime: 0, count: 0 }, '3': { quantity: 0, downtime: 0, count: 0 } };
     filtered.forEach(p => {
         const operator = operators[p.operatorId];
-        const shift = operator?.shift || 'A';
+        const shift = ['1', '2', '3'].includes(operator?.shift) ? operator.shift : '1';
         statsByShift[shift].quantity += p.quantity || 0;
         statsByShift[shift].downtime += p.downtime || 0;
         statsByShift[shift].count++;
@@ -2384,11 +3192,11 @@ async function downloadClosingReport(monthKey) {
     filtered.forEach(p => {
         const operator = operators[p.operatorId];
         if (!operatorStats[p.operatorId]) {
-            operatorStats[p.operatorId] = { 
-                name: operator?.name || 'N/A', 
-                shift: operator?.shift || 'A',
-                quantity: 0, 
-                downtime: 0, 
+            operatorStats[p.operatorId] = {
+                name: operator?.name || 'N/A',
+                shift: operator?.shift || '1',
+                quantity: 0,
+                downtime: 0,
                 count: 0,
                 days: new Set()
             };
@@ -2424,7 +3232,7 @@ async function downloadClosingReport(monthKey) {
 
     // Melhor turno
     const bestShift = Object.entries(statsByShift).sort((a, b) => b[1].quantity - a[1].quantity)[0];
-    const bestShiftName = bestShift[0] === 'A' ? '1º Turno' : bestShift[0] === 'B' ? '2º Turno' : '3º Turno';
+    const bestShiftName = getShiftName(bestShift[0]);
 
     // Melhor máquina
     const bestMachine = Object.values(statsByMachine).sort((a, b) => b.quantity - a.quantity)[0];
@@ -2841,8 +3649,8 @@ async function downloadClosingReport(monthKey) {
               <i class="fas fa-file-invoice"></i>
               RELATÓRIO DE FECHAMENTO
             </div>
-            <div class="pdf-month">${formatMonthKeyToText(monthKey)}</div>
-            <div class="pdf-subtitle">${config.app_title || 'Controle de Produção Industrial'}</div>
+            <div class="pdf-month">${periodText}</div>
+            <div class="pdf-subtitle">${window.elementSdk ? (window.elementSdk.config.app_title || defaultConfig.app_title) : defaultConfig.app_title}</div>
             <div class="pdf-date"><i class="far fa-calendar-alt"></i> Documento gerado em: ${new Date().toLocaleString('pt-BR', { dateStyle: 'full', timeStyle: 'short' })}</div>
           </div>
           
@@ -2940,13 +3748,13 @@ async function downloadClosingReport(monthKey) {
             </div>
             
             <div class="shift-grid">
-              ${['A', 'B', 'C'].map(shift => {
-                const shiftData = statsByShift[shift];
-                const shiftAvg = shiftData.count > 0 ? Math.round(shiftData.quantity / shiftData.count) : 0;
-                return `
+              ${['1', '2', '3'].map(shift => {
+        const shiftData = statsByShift[shift];
+        const shiftAvg = shiftData.count > 0 ? Math.round(shiftData.quantity / shiftData.count) : 0;
+        return `
                 <div class="shift-card">
                   <div class="shift-header">
-                    ${shift === 'A' ? '1º Turno (Manhã)' : shift === 'B' ? '2º Turno (Tarde)' : '3º Turno (Noite)'}
+                    ${getShiftName(shift)}
                   </div>
                   <div class="shift-body">
                     <div class="shift-stat">
@@ -2981,7 +3789,7 @@ async function downloadClosingReport(monthKey) {
               <i class="fas fa-file-invoice"></i>
               RELATÓRIO DE FECHAMENTO
             </div>
-            <div class="pdf-month">${formatMonthKeyToText(monthKey)} - Continuação</div>
+            <div class="pdf-month">${periodText} - Continuação</div>
           </div>
           
           <div class="content">
@@ -2992,9 +3800,14 @@ async function downloadClosingReport(monthKey) {
             </div>
             
             <div class="machine-list">
-              ${Object.values(statsByMachine).sort((a, b) => b.quantity - a.quantity).map(machine => {
-                const machineAvg = machine.count > 0 ? Math.round(machine.quantity / machine.count) : 0;
-                return `
+              ${Object.values(statsByMachine).sort((a, b) => {
+                // Ordenar máquinas numericamente
+                const ma = parseInt(a.name.replace(/\D/g, '')) || 0;
+                const mb = parseInt(b.name.replace(/\D/g, '')) || 0;
+                return ma - mb;
+              }).map(machine => {
+            const machineAvg = machine.count > 0 ? Math.round(machine.quantity / machine.count) : 0;
+            return `
                 <div class="machine-item">
                   <div class="machine-name"><i class="fas fa-cog"></i> ${machine.name}</div>
                   <div class="machine-stats">
@@ -3043,7 +3856,7 @@ async function downloadClosingReport(monthKey) {
                   <tr>
                     <td class="rank-col">${i + 1}º</td>
                     <td class="name-col">${op.name}</td>
-                    <td class="shift-col">${op.shift === 'A' ? '1º' : op.shift === 'B' ? '2º' : '3º'}</td>
+                    <td class="shift-col">${getShiftName(op.shift)}</td>
                     <td class="number-col">${op.quantity.toLocaleString()}</td>
                     <td class="number-col">${op.avgPerDay.toLocaleString()}</td>
                     <td class="number-col">${op.daysWorked}</td>
@@ -3087,7 +3900,6 @@ async function downloadClosingReport(monthKey) {
               </div>
             </div>
             
-         
             <div class="page-number">Página 2 de 2</div>
           </div>
         </div>
@@ -3097,12 +3909,12 @@ async function downloadClosingReport(monthKey) {
 
     try {
         await new Promise(resolve => setTimeout(resolve, 800));
-        
+
         // Capturar cada página separadamente
         const pages = pdfContainer.querySelectorAll('.pdf-page');
         const pdf = new jsPDF('p', 'mm', 'a4');
         const pdfWidth = 210;
-        
+
         for (let i = 0; i < pages.length; i++) {
             const canvas = await html2canvas(pages[i], {
                 scale: 2,
@@ -3112,17 +3924,18 @@ async function downloadClosingReport(monthKey) {
                 width: 793,
                 windowWidth: 793
             });
-            
+
             const imgData = canvas.toDataURL('image/png');
             const imgHeight = (canvas.height * pdfWidth) / canvas.width;
-            
+
             if (i > 0) {
                 pdf.addPage();
             }
-            
+
             pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, imgHeight);
         }
 
+        const monthKey = getMonthKey(currentMonth);
         pdf.save(`fechamento_${monthKey}.pdf`);
         showToast('Relatório completo exportado em 2 páginas!');
     } catch (error) {
@@ -3132,6 +3945,7 @@ async function downloadClosingReport(monthKey) {
         document.body.removeChild(pdfContainer);
     }
 }
+
 
 
 
@@ -3148,4 +3962,3 @@ window.downloadClosingReport = downloadClosingReport;
 
 // Initialize app
 initializeApp();
-
