@@ -488,12 +488,30 @@ document.getElementById('settings-tab').addEventListener('click', () => {
     updateLastAccessCard();
 });
 
+// Adicionar campo 'online' e 'lastAccess' em cada usuário do BD
+Object.keys(users).forEach(userId => {
+    if (!users[userId].online) users[userId].online = false;
+    if (!users[userId].lastAccess) users[userId].lastAccess = null;
+});
 
-// Array para armazenar os logs de acesso em memória (máximo 3)
-let accessLogs = [];
+// Salvar usuários no localStorage (simula BD persistente)
+function saveUsersDB() {
+    localStorage.setItem('usersDB', JSON.stringify(users));
+}
+
+// Carregar usuários do localStorage
+function loadUsersDB() {
+    const savedUsers = localStorage.getItem('usersDB');
+    if (savedUsers) {
+        const loadedUsers = JSON.parse(savedUsers);
+        Object.keys(loadedUsers).forEach(userId => {
+            users[userId] = loadedUsers[userId];
+        });
+    }
+}
 
 // Renderizar um item de log
-function renderAccessLogItem(username, fullName, level, timestamp) {
+function renderAccessLogItem(username, fullName, level, timestamp, isOnline) {
     const container = document.getElementById('access-log-container');
     if (!container) return;
     
@@ -510,7 +528,7 @@ function renderAccessLogItem(username, fullName, level, timestamp) {
         background: white;
         padding: 0.75rem 1rem;
         border-radius: 8px;
-        border-left: 3px solid #06b6d4;
+        border-left: 3px solid ${isOnline ? '#10b981' : '#06b6d4'};
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         transition: transform 0.2s, box-shadow 0.2s;
         min-width: 0;
@@ -518,12 +536,13 @@ function renderAccessLogItem(username, fullName, level, timestamp) {
     
     logItem.innerHTML = `
         <div style="display: flex; align-items: center; gap: 0.75rem; flex: 1; min-width: 0;">
-            <div style="width: 40px; height: 40px; min-width: 40px; background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1rem; flex-shrink: 0;">
+            <div style="width: 40px; height: 40px; min-width: 40px; background: linear-gradient(135deg, ${isOnline ? '#10b981' : '#06b6d4'} 0%, ${isOnline ? '#059669' : '#0891b2'} 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1rem; flex-shrink: 0; position: relative;">
                 ${initial}
+                ${isOnline ? '<span style="position: absolute; bottom: 0; right: 0; width: 12px; height: 12px; background: #22c55e; border: 2px solid white; border-radius: 50%;"></span>' : ''}
             </div>
             <div style="flex: 1; min-width: 0; overflow: hidden;">
                 <h4 style="font-weight: 600; font-size: 0.875rem; color: #1f2937; margin: 0 0 0.25rem 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                    ${fullName}
+                    ${fullName} ${isOnline ? '<span style="color: #10b981; font-size: 0.75rem;">● Online</span>' : ''}
                 </h4>
                 <p style="font-size: 0.75rem; color: #6b7280; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                     @${username} • ${level}
@@ -531,7 +550,7 @@ function renderAccessLogItem(username, fullName, level, timestamp) {
             </div>
         </div>
         <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem; flex-shrink: 0; margin-left: 0.5rem;">
-            <span style="font-weight: 700; font-size: 0.875rem; color: #06b6d4; white-space: nowrap;">
+            <span style="font-weight: 700; font-size: 0.875rem; color: ${isOnline ? '#10b981' : '#06b6d4'}; white-space: nowrap;">
                 ${timeString}
             </span>
             <span style="font-size: 0.75rem; color: #9ca3af; white-space: nowrap;">
@@ -553,34 +572,51 @@ function renderAccessLogItem(username, fullName, level, timestamp) {
     return logItem;
 }
 
-// Atualizar a exibição dos logs
+// Atualizar a exibição dos logs pegando do BD
 function updateAccessLogsDisplay() {
     const container = document.getElementById('access-log-container');
     if (!container) return;
     
     container.innerHTML = ''; // Limpa o container
     
-    // Renderiza os logs em ordem (mais recente primeiro)
-    accessLogs.forEach(log => {
-        const logItem = renderAccessLogItem(log.username, log.fullName, log.level, log.timestamp);
+    // Pegar todos os usuários que têm lastAccess
+    const usersWithAccess = Object.entries(users)
+        .filter(([id, user]) => user.lastAccess)
+        .map(([id, user]) => ({
+            userId: id,
+            username: user.username,
+            fullName: user.name,
+            level: user.level,
+            timestamp: user.lastAccess,
+            isOnline: user.online
+        }))
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+        .slice(0, 3); // Apenas os 3 mais recentes
+    
+    // Renderiza os logs
+    usersWithAccess.forEach(log => {
+        const logItem = renderAccessLogItem(log.username, log.fullName, log.level, log.timestamp, log.isOnline);
         container.appendChild(logItem);
     });
 }
 
-// Função para adicionar registro de acesso
-function addAccessLog(username, fullName, level) {
-    const timestamp = new Date().toISOString();
-    
-    // Adicionar novo log no início do array
-    accessLogs.unshift({ username, fullName, level, timestamp });
-    
-    // Limitar a 3 registros apenas
-    if (accessLogs.length > 3) {
-        accessLogs = accessLogs.slice(0, 3);
+// Marcar usuário como online no BD
+function setUserOnline(userId) {
+    if (users[userId]) {
+        users[userId].online = true;
+        users[userId].lastAccess = new Date().toISOString();
+        saveUsersDB();
+        updateAccessLogsDisplay();
     }
-    
-    // Atualizar a exibição
-    updateAccessLogsDisplay();
+}
+
+// Marcar usuário como offline no BD
+function setUserOffline(userId) {
+    if (users[userId]) {
+        users[userId].online = false;
+        saveUsersDB();
+        updateAccessLogsDisplay();
+    }
 }
 
 function handleLogin(e) {
@@ -598,14 +634,8 @@ function handleLogin(e) {
         currentUser = { ...userData, id: userId };
         localStorage.setItem('currentUser', JSON.stringify({ id: userId }));
         
-        // ADICIONAR LOG COM OS DADOS DO BD
-        const userFromDB = users[userId];
-        
-        addAccessLog(
-            userFromDB.username || 'N/A', 
-            userFromDB.name || 'Usuário', 
-            userFromDB.level || 'Usuário'
-        );
+        // MARCAR COMO ONLINE NO BD
+        setUserOnline(userId);
         
         showMainApp();
         showToast('Login realizado com sucesso!');
@@ -617,6 +647,11 @@ function handleLogin(e) {
 }
 
 function handleLogout() {
+    // MARCAR COMO OFFLINE NO BD
+    if (currentUser && currentUser.id) {
+        setUserOffline(currentUser.id);
+    }
+    
     currentUser = null;
     localStorage.removeItem('currentUser');
     document.getElementById('login-screen').classList.remove('hidden');
@@ -626,7 +661,11 @@ function handleLogout() {
     document.getElementById('login-error').classList.add('hidden');
 }
 
-
+// Carregar BD e logs quando a página carregar
+document.addEventListener('DOMContentLoaded', function() {
+    loadUsersDB();
+    updateAccessLogsDisplay();
+});
 
 function showMainApp() {
     document.getElementById('login-screen').classList.add('hidden');
