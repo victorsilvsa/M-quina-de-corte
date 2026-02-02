@@ -488,32 +488,22 @@ document.getElementById('settings-tab').addEventListener('click', () => {
     updateLastAccessCard();
 });
 
-// Adicionar campo 'online' e 'lastAccess' em cada usuário do BD
-Object.keys(users).forEach(userId => {
-    if (!users[userId].online) users[userId].online = false;
-    if (!users[userId].lastAccess) users[userId].lastAccess = null;
-});
 
-// Salvar usuários no localStorage (simula BD persistente)
-function saveUsersDB() {
-    localStorage.setItem('usersDB', JSON.stringify(users));
-}
-
-// Carregar usuários do localStorage
-function loadUsersDB() {
-    const savedUsers = localStorage.getItem('usersDB');
-    if (savedUsers) {
-        const loadedUsers = JSON.parse(savedUsers);
-        Object.keys(loadedUsers).forEach(userId => {
-            users[userId] = loadedUsers[userId];
-        });
-    }
-}
+// Firebase já inicializado, usar a referência do database
+const usersRef = database.ref('users');
+const accessLogsRef = database.ref('accessLogs');
 
 // Renderizar um item de log
 function renderAccessLogItem(username, fullName, level, timestamp, isOnline) {
     const container = document.getElementById('access-log-container');
-    if (!container) return;
+    if (!container) return null;
+    
+    username = username || 'N/A';
+    fullName = fullName || 'Usuário';
+    level = level || 'Usuário';
+    isOnline = isOnline || false;
+    
+    if (!timestamp) return null;
     
     const date = new Date(timestamp);
     const timeString = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
@@ -572,51 +562,104 @@ function renderAccessLogItem(username, fullName, level, timestamp, isOnline) {
     return logItem;
 }
 
-// Atualizar a exibição dos logs pegando do BD
-function updateAccessLogsDisplay() {
+// Atualizar exibição dos logs em tempo real do Firebase
+function setupAccessLogsListener() {
     const container = document.getElementById('access-log-container');
     if (!container) return;
     
-    container.innerHTML = ''; // Limpa o container
-    
-    // Pegar todos os usuários que têm lastAccess
-    const usersWithAccess = Object.entries(users)
-        .filter(([id, user]) => user.lastAccess)
-        .map(([id, user]) => ({
-            userId: id,
-            username: user.username,
-            fullName: user.name,
-            level: user.level,
-            timestamp: user.lastAccess,
-            isOnline: user.online
-        }))
-        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-        .slice(0, 3); // Apenas os 3 mais recentes
-    
-    // Renderiza os logs
-    usersWithAccess.forEach(log => {
-        const logItem = renderAccessLogItem(log.username, log.fullName, log.level, log.timestamp, log.isOnline);
-        container.appendChild(logItem);
+    // Escutar mudanças nos logs de acesso
+    accessLogsRef.orderByChild('timestamp').limitToLast(3).on('value', (snapshot) => {
+        container.innerHTML = '';
+        
+        const logs = [];
+        snapshot.forEach((childSnapshot) => {
+            const log = childSnapshot.val();
+            logs.push(log);
+        });
+        
+        // Inverter para mostrar mais recente primeiro
+        logs.reverse();
+        
+        if (logs.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: #9ca3af; padding: 2rem; font-size: 0.875rem;">Nenhum acesso registrado</p>';
+        } else {
+            logs.forEach(log => {
+                const logItem = renderAccessLogItem(
+                    log.username, 
+                    log.fullName, 
+                    log.level, 
+                    log.timestamp, 
+                    log.isOnline
+                );
+                if (logItem) {
+                    container.appendChild(logItem);
+                }
+            });
+        }
     });
 }
 
-// Marcar usuário como online no BD
-function setUserOnline(userId) {
-    if (users[userId]) {
-        users[userId].online = true;
-        users[userId].lastAccess = new Date().toISOString();
-        saveUsersDB();
-        updateAccessLogsDisplay();
-    }
+// Adicionar log de acesso no Firebase
+function addAccessLogToFirebase(userId, username, fullName, level) {
+    const timestamp = new Date().toISOString();
+    
+    // Criar novo log
+    const newLogRef = accessLogsRef.push();
+    newLogRef.set({
+        userId: userId,
+        username: username,
+        fullName: fullName,
+        level: level,
+        timestamp: timestamp,
+        isOnline: true
+    });
+    
+    // Limpar logs antigos (manter apenas 3)
+    accessLogsRef.once('value', (snapshot) => {
+        const logs = [];
+        snapshot.forEach((childSnapshot) => {
+            logs.push({
+                key: childSnapshot.key,
+                timestamp: childSnapshot.val().timestamp
+            });
+        });
+        
+        // Ordenar por timestamp e remover os mais antigos
+        logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        
+        if (logs.length > 3) {
+            logs.slice(3).forEach(log => {
+                accessLogsRef.child(log.key).remove();
+            });
+        }
+    });
 }
 
-// Marcar usuário como offline no BD
-function setUserOffline(userId) {
-    if (users[userId]) {
-        users[userId].online = false;
-        saveUsersDB();
-        updateAccessLogsDisplay();
-    }
+// Marcar usuário como online no Firebase
+function setUserOnlineFirebase(userId, username, fullName, level) {
+    usersRef.child(userId).update({
+        online: true,
+        lastAccess: new Date().toISOString()
+    });
+    
+    // Adicionar log de acesso
+    addAccessLogToFirebase(userId, username, fullName, level);
+}
+
+// Marcar usuário como offline no Firebase
+function setUserOfflineFirebase(userId) {
+    usersRef.child(userId).update({
+        online: false
+    });
+    
+    // Atualizar status nos logs
+    accessLogsRef.orderByChild('userId').equalTo(userId).once('value', (snapshot) => {
+        snapshot.forEach((childSnapshot) => {
+            accessLogsRef.child(childSnapshot.key).update({
+                isOnline: false
+            });
+        });
+    });
 }
 
 function handleLogin(e) {
@@ -624,32 +667,46 @@ function handleLogin(e) {
     const username = document.getElementById('login-username').value;
     const password = document.getElementById('login-password').value;
 
-    // BUSCAR USUÁRIO DIRETO DO BD (objeto users)
-    const userEntry = Object.entries(users).find(([id, u]) =>
-        u.username === username && u.password === password
-    );
-
-    if (userEntry) {
-        const [userId, userData] = userEntry;
-        currentUser = { ...userData, id: userId };
-        localStorage.setItem('currentUser', JSON.stringify({ id: userId }));
+    // Buscar usuário no Firebase
+    usersRef.once('value', (snapshot) => {
+        let userFound = null;
+        let userId = null;
         
-        // MARCAR COMO ONLINE NO BD
-        setUserOnline(userId);
+        snapshot.forEach((childSnapshot) => {
+            const user = childSnapshot.val();
+            if (user.username === username && user.password === password) {
+                userFound = user;
+                userId = childSnapshot.key;
+            }
+        });
         
-        showMainApp();
-        showToast('Login realizado com sucesso!');
-    } else {
-        const errorDiv = document.getElementById('login-error');
-        errorDiv.querySelector('p').textContent = 'Usuário ou senha inválidos';
-        errorDiv.classList.remove('hidden');
-    }
+        if (userFound && userId) {
+            currentUser = { ...userFound, id: userId };
+            localStorage.setItem('currentUser', JSON.stringify({ id: userId }));
+            
+            // Marcar como online no Firebase
+            setUserOnlineFirebase(
+                userId,
+                userFound.username || 'N/A',
+                userFound.name || 'Usuário',
+                userFound.level || 'Usuário'
+            );
+            
+            showMainApp();
+            showToast('Login realizado com sucesso!');
+        } else {
+            const errorDiv = document.getElementById('login-error');
+            if (errorDiv) {
+                errorDiv.querySelector('p').textContent = 'Usuário ou senha inválidos';
+                errorDiv.classList.remove('hidden');
+            }
+        }
+    });
 }
 
 function handleLogout() {
-    // MARCAR COMO OFFLINE NO BD
     if (currentUser && currentUser.id) {
-        setUserOffline(currentUser.id);
+        setUserOfflineFirebase(currentUser.id);
     }
     
     currentUser = null;
@@ -658,14 +715,18 @@ function handleLogout() {
     document.getElementById('main-app').classList.add('hidden');
     document.getElementById('login-username').value = '';
     document.getElementById('login-password').value = '';
-    document.getElementById('login-error').classList.add('hidden');
+    const errorDiv = document.getElementById('login-error');
+    if (errorDiv) {
+        errorDiv.classList.add('hidden');
+    }
 }
 
-// Carregar BD e logs quando a página carregar
+// Inicializar listener quando a página carregar
 document.addEventListener('DOMContentLoaded', function() {
-    loadUsersDB();
-    updateAccessLogsDisplay();
+    setupAccessLogsListener();
 });
+
+
 
 function showMainApp() {
     document.getElementById('login-screen').classList.add('hidden');
