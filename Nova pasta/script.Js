@@ -1776,6 +1776,7 @@ function getShiftName(shift) {
     return shiftMap[shift] || shift;
 }
 
+
 // Função principal de exportação
 async function exportToPDF() {
     await new Promise(resolve => {
@@ -1809,20 +1810,41 @@ async function exportToPDF() {
     const statsByShift = { A: { quantity: 0, downtime: 0, count: 0 }, B: { quantity: 0, downtime: 0, count: 0 }, C: { quantity: 0, downtime: 0, count: 0 } };
     const operatorStats = {};
     
-    filtered.forEach(p => {
-        const operator = operators[p.operatorId];
-        const shift = operator?.shift || 'A';
-        statsByShift[shift].quantity += p.quantity || 0;
-        statsByShift[shift].downtime += p.downtime || 0;
-        statsByShift[shift].count++;
-        
-        if (!operatorStats[p.operatorId]) {
-            operatorStats[p.operatorId] = { name: operator?.name || 'N/A', shift, quantity: 0, downtime: 0, count: 0 };
-        }
-        operatorStats[p.operatorId].quantity += p.quantity || 0;
-        operatorStats[p.operatorId].downtime += p.downtime || 0;
-        operatorStats[p.operatorId].count++;
-    });
+  filtered.forEach(p => {
+    if (!p) return;
+
+    const operator = operators[p.operatorId];
+
+    // normaliza e valida o turno
+    const shift = ['1', '2', '3'].includes(operator?.shift)
+        ? operator.shift
+        : '1';
+
+    // garante que o turno exista no objeto
+    if (!statsByShift[shift]) {
+        statsByShift[shift] = { quantity: 0, downtime: 0, count: 0 };
+    }
+
+    statsByShift[shift].quantity += p.quantity ?? 0;
+    statsByShift[shift].downtime += p.downtime ?? 0;
+    statsByShift[shift].count++;
+
+    // estatísticas por operador
+    if (!operatorStats[p.operatorId]) {
+        operatorStats[p.operatorId] = {
+            name: operator?.name || 'N/A',
+            shift,
+            quantity: 0,
+            downtime: 0,
+            count: 0
+        };
+    }
+
+    operatorStats[p.operatorId].quantity += p.quantity ?? 0;
+    operatorStats[p.operatorId].downtime += p.downtime ?? 0;
+    operatorStats[p.operatorId].count++;
+});
+
 
     const topOperators = Object.values(operatorStats).sort((a, b) => b.quantity - a.quantity).slice(0, 5);
 
@@ -3126,3 +3148,4 @@ window.downloadClosingReport = downloadClosingReport;
 
 // Initialize app
 initializeApp();
+
