@@ -924,6 +924,7 @@ function updateDashboard() {
 
 
 // Production View
+
 function updateProductionView() {
     const monthKey = getMonthKey(currentMonth);
     const { startDate, endDate } = getCustomMonthRange(currentMonth);
@@ -1004,7 +1005,7 @@ function updateProductionView() {
                 <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Turno</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Operador</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Qtd</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Parada</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Tempo Parado</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Ações</th>
             </tr>`;
     }
@@ -1023,13 +1024,29 @@ function updateProductionView() {
         if (dayProds.length > 0) {
             dayProds.forEach(p => {
                 const operator = operators[p.operatorId];
+                
+                // ✅ MONTAR TEMPO PARADO (horas e minutos)
+                const hours = p.downtimeHours || 0;
+                const minutes = p.downtimeMinutes || 0;
+                let downtimeDisplay = '';
+                
+                if (hours > 0 && minutes > 0) {
+                    downtimeDisplay = `${hours}h ${minutes}min`;
+                } else if (hours > 0) {
+                    downtimeDisplay = `${hours}h`;
+                } else if (minutes > 0) {
+                    downtimeDisplay = `${minutes}min`;
+                } else {
+                    downtimeDisplay = '-';
+                }
+                
                 tableHtml += `
               <tr class="${getProductionClass(p.quantity)} border-b border-gray-100">
                 <td class="px-4 py-3 text-sm">${formatDate(dateStr)}</td>
                 <td class="px-4 py-3 text-sm">${operator ? getShiftBadge(operator.shift) : '-'}</td>
                 <td class="px-4 py-3 text-sm">${operator?.name || '-'}</td>
                 <td class="px-4 py-3 text-sm font-semibold">${(p.quantity || 0).toLocaleString()}</td>
-                <td class="px-4 py-3 text-sm">${p.downtime || 0}h</td>
+                <td class="px-4 py-3 text-sm">${downtimeDisplay}</td>
                 <td class="px-4 py-3 text-sm">
                   <div class="flex items-center gap-2">
                     <button onclick="showProductionModal('${dateStr}', '${p.id}')" style="display:inline-block !important; visibility:visible !important;" class="p-2 bg-cyan-100 text-cyan-700 rounded hover:bg-cyan-200">
@@ -1063,6 +1080,8 @@ function updateProductionView() {
 
     document.getElementById('monthly-table-body').innerHTML = tableHtml || '<tr><td colspan="6" class="text-center py-8 text-gray-500">Nenhum registro</td></tr>';
 }
+
+
 
 async function showProductionModal(date, productionId = null) {
     // ✅ REMOVIDO: Validação de mês fechado - agora ignora
@@ -1100,6 +1119,10 @@ async function showProductionModal(date, productionId = null) {
         </option>`
     ).join('');
 
+    // ✅ EXTRAIR HORAS E MINUTOS DO TEMPO PARADO
+    const downtimeHours = production?.downtimeHours || '';
+    const downtimeMinutes = production?.downtimeMinutes || '';
+
     const content = `
         <form id="production-form" class="space-y-4">
             <div>
@@ -1130,9 +1153,19 @@ async function showProductionModal(date, productionId = null) {
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Tempo Parado (h)</label>
-                <input type="number" id="prod-downtime" min="0" value="${production?.downtime || ''}"
-                    class="w-full px-3 py-2 border rounded-lg">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Tempo Parado</label>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-gray-600 mb-1">Horas</label>
+                        <input type="number" id="prod-downtime-hours" min="0" value="${downtimeHours}"
+                            class="w-full px-3 py-2 border rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-600 mb-1">Minutos</label>
+                        <input type="number" id="prod-downtime-minutes" min="0" max="59" value="${downtimeMinutes}"
+                            class="w-full px-3 py-2 border rounded-lg">
+                    </div>
+                </div>
             </div>
 
             <div>
@@ -1155,12 +1188,23 @@ async function showProductionModal(date, productionId = null) {
     document.getElementById('production-form').addEventListener('submit', async (e) => {
         e.preventDefault();
 
+        // ✅ PEGAR HORAS E MINUTOS SEPARADOS
+        const hours = parseInt(document.getElementById('prod-downtime-hours').value) || 0;
+        const minutes = parseInt(document.getElementById('prod-downtime-minutes').value) || 0;
+
+        // ✅ VALIDAR MINUTOS
+        if (minutes > 59) {
+            showToast('Minutos deve ser entre 0 e 59', 'error');
+            return;
+        }
+
         const data = {
             date: document.getElementById('prod-date').value,
             machineId,
             operatorId: document.getElementById('prod-operator').value,
             quantity: parseInt(document.getElementById('prod-quantity').value) || 0,
-            downtime: parseInt(document.getElementById('prod-downtime').value) || 0,
+            downtimeHours: hours,
+            downtimeMinutes: minutes,
             observations: document.getElementById('prod-observations').value
         };
 
@@ -1996,6 +2040,24 @@ async function saveLimits() {
 }
 
 
+// ================================
+// FUNÇÃO AUXILIAR - FORMATAR DOWNTIME
+// ================================
+function formatDowntime(hours, minutes) {
+    hours = hours || 0;
+    minutes = minutes || 0;
+    
+    if (hours > 0 && minutes > 0) {
+        return `${hours}h ${minutes}min`;
+    } else if (hours > 0) {
+        return `${hours}h`;
+    } else if (minutes > 0) {
+        return `${minutes}min`;
+    } else {
+        return '-';
+    }
+}
+
 // Reports
 // Função para popular os filtros com dados do Firebase
 async function populateFilterSelects() {
@@ -2135,7 +2197,13 @@ function generateReport() {
 
     // ✅ OTIMIZADO: Cálculo de estatísticas ANTES da paginação (uma única iteração)
     const totalQuantity = filtered.reduce((sum, p) => sum + (p.quantity || 0), 0);
-    const totalDowntime = filtered.reduce((sum, p) => sum + (p.downtime || 0), 0);
+    let totalDowntimeHours = filtered.reduce((sum, p) => sum + (p.downtimeHours || 0), 0);
+    let totalDowntimeMinutes = filtered.reduce((sum, p) => sum + (p.downtimeMinutes || 0), 0);
+    
+    // Converter minutos extras para horas
+    totalDowntimeHours += Math.floor(totalDowntimeMinutes / 60);
+    totalDowntimeMinutes = totalDowntimeMinutes % 60;
+    
     const uniqueDays = [...new Set(filtered.map(p => p.date))].length;
 
     // Pagination
@@ -2153,6 +2221,7 @@ function generateReport() {
         const machine = machines[p.machineId];
         const operator = operators[p.operatorId];
         const shiftName = operator?.shift ? shiftNames[operator.shift] || 'Turno 1' : '-';
+        const downtimeDisplay = formatDowntime(p.downtimeHours, p.downtimeMinutes);
 
         return `
             <tr class="${getProductionClass(p.quantity)}">
@@ -2161,7 +2230,7 @@ function generateReport() {
                 <td>${operator ? getShiftBadge(operator.shift) : '-'}</td>
                 <td>${operator?.name || '-'}</td>
                 <td class="font-semibold">${(p.quantity || 0).toLocaleString()}</td>
-                <td>${p.downtime || 0}h</td>
+                <td>${downtimeDisplay}</td>
                 <td>
                     ${p.observations
                 ? `<span class="text-xs bg-yellow-50 px-2 py-1 rounded border border-yellow-200 inline-block max-w-xs truncate" title="${p.observations}">
@@ -2206,6 +2275,7 @@ function generateReport() {
     `;
 
     // ✅ Summary já calculado acima (otimizado)
+    const downtimeDisplay = formatDowntime(totalDowntimeHours, totalDowntimeMinutes);
     document.getElementById('report-summary').innerHTML = `
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div>
@@ -2218,7 +2288,7 @@ function generateReport() {
             </div>
             <div>
                 <p class="text-xs text-gray-500">Tempo Parado</p>
-                <p class="text-xl font-bold text-gray-800">${totalDowntime}h</p>
+                <p class="text-xl font-bold text-gray-800">${downtimeDisplay}</p>
             </div>
             <div>
                 <p class="text-xs text-gray-500">Dias com Produção</p>
@@ -2239,8 +2309,6 @@ function changeReportPage(step) {
     generateReport();
 }
 
-
-
 // Carregar bibliotecas
 const script1 = document.createElement('script');
 script1.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
@@ -2252,10 +2320,9 @@ document.head.appendChild(script2);
 
 // Função auxiliar para converter shift para turno
 function getShiftName(shift) {
-    const shiftMap = { 'A': '1º Turno', 'B': '2º Turno', 'C': '3º Turno' };
+    const shiftMap = { '1': '1º Turno', '2': '2º Turno', '3': '3º Turno' };
     return shiftMap[shift] || shift;
 }
-
 
 // Função principal de exportação
 async function exportToPDF() {
@@ -2301,11 +2368,17 @@ async function exportToPDF() {
 
     // ===== PÁGINA 1: RESUMO GERAL =====
     const totalQuantity = filtered.reduce((sum, p) => sum + (p.quantity || 0), 0);
-    const totalDowntime = filtered.reduce((sum, p) => sum + (p.downtime || 0), 0);
+    let totalDowntimeHours = filtered.reduce((sum, p) => sum + (p.downtimeHours || 0), 0);
+    let totalDowntimeMinutes = filtered.reduce((sum, p) => sum + (p.downtimeMinutes || 0), 0);
+    
+    // Converter minutos extras para horas
+    totalDowntimeHours += Math.floor(totalDowntimeMinutes / 60);
+    totalDowntimeMinutes = totalDowntimeMinutes % 60;
+    
     const uniqueDays = [...new Set(filtered.map(p => p.date))].length;
     const average = uniqueDays > 0 ? Math.round(totalQuantity / uniqueDays) : 0;
 
-    const statsByShift = { '1': { quantity: 0, downtime: 0, count: 0 }, '2': { quantity: 0, downtime: 0, count: 0 }, '3': { quantity: 0, downtime: 0, count: 0 } };
+    const statsByShift = { '1': { quantity: 0, downtimeHours: 0, downtimeMinutes: 0, count: 0 }, '2': { quantity: 0, downtimeHours: 0, downtimeMinutes: 0, count: 0 }, '3': { quantity: 0, downtimeHours: 0, downtimeMinutes: 0, count: 0 } };
     const operatorStats = {};
 
     filtered.forEach(p => {
@@ -2320,11 +2393,12 @@ async function exportToPDF() {
 
         // garante que o turno exista no objeto
         if (!statsByShift[shift]) {
-            statsByShift[shift] = { quantity: 0, downtime: 0, count: 0 };
+            statsByShift[shift] = { quantity: 0, downtimeHours: 0, downtimeMinutes: 0, count: 0 };
         }
 
         statsByShift[shift].quantity += p.quantity ?? 0;
-        statsByShift[shift].downtime += p.downtime ?? 0;
+        statsByShift[shift].downtimeHours += p.downtimeHours ?? 0;
+        statsByShift[shift].downtimeMinutes += p.downtimeMinutes ?? 0;
         statsByShift[shift].count++;
 
         // estatísticas por operador
@@ -2333,14 +2407,32 @@ async function exportToPDF() {
                 name: operator?.name || 'N/A',
                 shift,
                 quantity: 0,
-                downtime: 0,
+                downtimeHours: 0,
+                downtimeMinutes: 0,
                 count: 0
             };
         }
 
         operatorStats[p.operatorId].quantity += p.quantity ?? 0;
-        operatorStats[p.operatorId].downtime += p.downtime ?? 0;
+        operatorStats[p.operatorId].downtimeHours += p.downtimeHours ?? 0;
+        operatorStats[p.operatorId].downtimeMinutes += p.downtimeMinutes ?? 0;
         operatorStats[p.operatorId].count++;
+    });
+
+    // Normalizar downtime dos turnos
+    Object.keys(statsByShift).forEach(shift => {
+        const hours = statsByShift[shift].downtimeHours;
+        const minutes = statsByShift[shift].downtimeMinutes;
+        statsByShift[shift].downtimeHours = hours + Math.floor(minutes / 60);
+        statsByShift[shift].downtimeMinutes = minutes % 60;
+    });
+
+    // Normalizar downtime dos operadores
+    Object.keys(operatorStats).forEach(opId => {
+        const hours = operatorStats[opId].downtimeHours;
+        const minutes = operatorStats[opId].downtimeMinutes;
+        operatorStats[opId].downtimeHours = hours + Math.floor(minutes / 60);
+        operatorStats[opId].downtimeMinutes = minutes % 60;
     });
 
     const topOperators = Object.values(operatorStats).sort((a, b) => b.quantity - a.quantity).slice(0, 5);
@@ -2411,7 +2503,7 @@ async function exportToPDF() {
                     <div class="stat-card">
                         <div class="stat-icon"><i class="fas fa-pause-circle"></i></div>
                         <div class="stat-label">Tempo Parado</div>
-                        <div class="stat-value">${totalDowntime}h</div>
+                        <div class="stat-value">${formatDowntime(totalDowntimeHours, totalDowntimeMinutes)}</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
@@ -2439,7 +2531,7 @@ async function exportToPDF() {
                                 </div>
                                 <div class="shift-stat">
                                     <span class="shift-stat-label">Paradas:</span>
-                                    <span class="shift-stat-value">${statsByShift[shift].downtime}h</span>
+                                    <span class="shift-stat-value">${formatDowntime(statsByShift[shift].downtimeHours, statsByShift[shift].downtimeMinutes)}</span>
                                 </div>
                                 <div class="shift-stat">
                                     <span class="shift-stat-label">Registros:</span>
@@ -2463,7 +2555,7 @@ async function exportToPDF() {
                                 <div class="operator-name"><i class="fas fa-user"></i> ${op.name}</div>
                                 <div class="operator-shift">${getShiftName(op.shift)}</div>
                                 <div class="operator-production">${op.quantity.toLocaleString()} un</div>
-                                <div class="operator-downtime">${op.downtime}h parado</div>
+                                <div class="operator-downtime">${formatDowntime(op.downtimeHours, op.downtimeMinutes)} parado</div>
                             </div>
                         </div>
                     `).join('')}
@@ -2527,7 +2619,11 @@ async function exportToPDF() {
         });
         
         const total = prods.reduce((sum, p) => sum + (p.quantity || 0), 0);
-        const downtime = prods.reduce((sum, p) => sum + (p.downtime || 0), 0);
+        let downHours = prods.reduce((sum, p) => sum + (p.downtimeHours || 0), 0);
+        let downMinutes = prods.reduce((sum, p) => sum + (p.downtimeMinutes || 0), 0);
+        downHours += Math.floor(downMinutes / 60);
+        downMinutes = downMinutes % 60;
+        
         const uniqueOpDays = [...new Set(prods.map(p => p.date))].length;
         const avgPerDay = uniqueOpDays > 0 ? Math.round(total / uniqueOpDays) : 0;
 
@@ -2626,7 +2722,7 @@ async function exportToPDF() {
                             <div class="stat-mini-card">
                                 <div class="stat-mini-icon"><i class="fas fa-pause-circle"></i></div>
                                 <div class="stat-mini-label">Tempo Parado</div>
-                                <div class="stat-mini-value">${downtime}h</div>
+                                <div class="stat-mini-value">${formatDowntime(downHours, downMinutes)}</div>
                             </div>
                             <div class="stat-mini-card">
                                 <div class="stat-mini-icon"><i class="fas fa-calendar-check"></i></div>
@@ -2660,7 +2756,7 @@ async function exportToPDF() {
                                         <td class="date-col">${formatDate(p.date)}</td>
                                         <td class="machine-col">${machines[p.machineId]?.name || 'N/A'}</td>
                                         <td class="quantity-col">${(p.quantity || 0).toLocaleString()} un</td>
-                                        <td class="downtime-col">${p.downtime || 0}h</td>
+                                        <td class="downtime-col">${formatDowntime(p.downtimeHours, p.downtimeMinutes)}</td>
                                         <td class="obs-col">${p.observations || '-'}</td>
                                     </tr>
                                 `).join('')}
@@ -2708,7 +2804,6 @@ async function exportToPDF() {
     pdf.save(`relatorio_producao_${monthKey}.pdf`);
     showToast('PDF completo exportado com sucesso!');
 }
-
 
 
 
