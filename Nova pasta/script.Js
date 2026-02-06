@@ -867,13 +867,20 @@ function updateDashboard() {
     );
 
     const totalQuantity = filtered.reduce((sum, p) => sum + (p.quantity || 0), 0);
-    const totalDowntime = filtered.reduce((sum, p) => sum + (p.downtime || 0), 0);
+    
+    // ✅ CORRIGIDO: Calcular downtime em horas e minutos
+    let totalDowntimeHours = filtered.reduce((sum, p) => sum + (p.downtimeHours || 0), 0);
+    let totalDowntimeMinutes = filtered.reduce((sum, p) => sum + (p.downtimeMinutes || 0), 0);
+    totalDowntimeHours += Math.floor(totalDowntimeMinutes / 60);
+    totalDowntimeMinutes = totalDowntimeMinutes % 60;
+    const totalDowntimeFormatted = `${totalDowntimeHours}h ${totalDowntimeMinutes}m`;
+    
     const uniqueDays = [...new Set(filtered.map(p => p.date))].length;
     const average = uniqueDays > 0 ? Math.round(totalQuantity / uniqueDays) : 0;
 
     document.getElementById('stat-total').textContent = totalQuantity.toLocaleString();
     document.getElementById('stat-average').textContent = average.toLocaleString();
-    document.getElementById('stat-downtime').textContent = `${totalDowntime}h`;
+    document.getElementById('stat-downtime').textContent = totalDowntimeFormatted;
     document.getElementById('stat-days').textContent = uniqueDays;
 
     // Machine stats
@@ -2808,8 +2815,6 @@ async function exportToPDF() {
 
 
 
-
-
 function exportToExcel() {
     // ✅ FILTRO ADAPTADO PARA MÊS CUSTOMIZADO (26 a 25)
     const filtered = getFilteredProductions()
@@ -3521,7 +3526,6 @@ document.getElementById('closing-month').addEventListener('change', e => {
 
 document.getElementById('close-month-btn').addEventListener('click', closeMonth);
 document.getElementById('open-month-btn').addEventListener('click', openMonth);
-
 async function downloadClosingReport(monthKey) {
     const { jsPDF } = window.jspdf;
   
@@ -3550,7 +3554,15 @@ async function downloadClosingReport(monthKey) {
     pdfContainer.style.cssText = 'position:absolute;left:-9999px;top:0;background:white;font-family:Inter,sans-serif;';
 
     const totalQuantity = filtered.reduce((sum, p) => sum + (p.quantity || 0), 0);
-    const totalDowntime = filtered.reduce((sum, p) => sum + (p.downtime || 0), 0);
+    
+    // ✅ CORRIGIDO: Calcular downtime em horas e minutos corretamente
+    let totalDowntimeHours = filtered.reduce((sum, p) => sum + (p.downtimeHours || 0), 0);
+    let totalDowntimeMinutes = filtered.reduce((sum, p) => sum + (p.downtimeMinutes || 0), 0);
+    totalDowntimeHours += Math.floor(totalDowntimeMinutes / 60);
+    totalDowntimeMinutes = totalDowntimeMinutes % 60;
+    const totalDowntime = `${totalDowntimeHours}h ${totalDowntimeMinutes}m`;
+    const totalDowntimeNumeric = totalDowntimeHours + (totalDowntimeMinutes / 60); // Para cálculos
+    
     const uniqueDays = [...new Set(filtered.map(p => p.date))].length;
     const avgPerDay = uniqueDays > 0 ? Math.round(totalQuantity / uniqueDays) : 0;
 
@@ -3558,24 +3570,40 @@ async function downloadClosingReport(monthKey) {
     const periodText = formatMonthYear(currentMonth);
 
     // Estatísticas por turno
-    const statsByShift = { '1': { quantity: 0, downtime: 0, count: 0 }, '2': { quantity: 0, downtime: 0, count: 0 }, '3': { quantity: 0, downtime: 0, count: 0 } };
+    const statsByShift = { '1': { quantity: 0, downtimeHours: 0, downtimeMinutes: 0, count: 0 }, '2': { quantity: 0, downtimeHours: 0, downtimeMinutes: 0, count: 0 }, '3': { quantity: 0, downtimeHours: 0, downtimeMinutes: 0, count: 0 } };
     filtered.forEach(p => {
         const operator = operators[p.operatorId];
         const shift = ['1', '2', '3'].includes(operator?.shift) ? operator.shift : '1';
         statsByShift[shift].quantity += p.quantity || 0;
-        statsByShift[shift].downtime += p.downtime || 0;
+        statsByShift[shift].downtimeHours += p.downtimeHours || 0;
+        statsByShift[shift].downtimeMinutes += p.downtimeMinutes || 0;
         statsByShift[shift].count++;
+    });
+    
+    // ✅ Normalizar minutos para horas em statsByShift
+    Object.values(statsByShift).forEach(shift => {
+        shift.downtimeHours += Math.floor(shift.downtimeMinutes / 60);
+        shift.downtimeMinutes = shift.downtimeMinutes % 60;
+        shift.downtimeFormatted = `${shift.downtimeHours}h ${shift.downtimeMinutes}m`;
     });
 
     // Estatísticas por máquina
     const statsByMachine = {};
     filtered.forEach(p => {
         if (!statsByMachine[p.machineId]) {
-            statsByMachine[p.machineId] = { name: machines[p.machineId]?.name || 'N/A', quantity: 0, downtime: 0, count: 0 };
+            statsByMachine[p.machineId] = { name: machines[p.machineId]?.name || 'N/A', quantity: 0, downtimeHours: 0, downtimeMinutes: 0, count: 0 };
         }
         statsByMachine[p.machineId].quantity += p.quantity || 0;
-        statsByMachine[p.machineId].downtime += p.downtime || 0;
+        statsByMachine[p.machineId].downtimeHours += p.downtimeHours || 0;
+        statsByMachine[p.machineId].downtimeMinutes += p.downtimeMinutes || 0;
         statsByMachine[p.machineId].count++;
+    });
+    
+    // ✅ Normalizar minutos para horas em statsByMachine
+    Object.values(statsByMachine).forEach(machine => {
+        machine.downtimeHours += Math.floor(machine.downtimeMinutes / 60);
+        machine.downtimeMinutes = machine.downtimeMinutes % 60;
+        machine.downtimeFormatted = `${machine.downtimeHours}h ${machine.downtimeMinutes}m`;
     });
 
     // Estatísticas completas por operador
@@ -3587,21 +3615,26 @@ async function downloadClosingReport(monthKey) {
                 name: operator?.name || 'N/A',
                 shift: operator?.shift || '1',
                 quantity: 0,
-                downtime: 0,
+                downtimeHours: 0,
+                downtimeMinutes: 0,
                 count: 0,
                 days: new Set()
             };
         }
         operatorStats[p.operatorId].quantity += p.quantity || 0;
-        operatorStats[p.operatorId].downtime += p.downtime || 0;
+        operatorStats[p.operatorId].downtimeHours += p.downtimeHours || 0;
+        operatorStats[p.operatorId].downtimeMinutes += p.downtimeMinutes || 0;
         operatorStats[p.operatorId].count++;
         operatorStats[p.operatorId].days.add(p.date);
     });
 
-    // Converter Set para tamanho
+    // Converter Set para tamanho e normalizar downtime
     Object.values(operatorStats).forEach(op => {
         op.daysWorked = op.days.size;
         op.avgPerDay = op.daysWorked > 0 ? Math.round(op.quantity / op.daysWorked) : 0;
+        op.downtimeHours += Math.floor(op.downtimeMinutes / 60);
+        op.downtimeMinutes = op.downtimeMinutes % 60;
+        op.downtimeFormatted = `${op.downtimeHours}h ${op.downtimeMinutes}m`;
         delete op.days;
     });
 
@@ -3630,7 +3663,7 @@ async function downloadClosingReport(monthKey) {
 
     // Eficiência (considerando 8h por registro, tempo produtivo = tempo total - paradas)
     const totalHoursAvailable = filtered.length * 8;
-    const productiveHours = totalHoursAvailable - totalDowntime;
+    const productiveHours = totalHoursAvailable - totalDowntimeNumeric;
     const efficiency = totalHoursAvailable > 0 ? ((productiveHours / totalHoursAvailable) * 100).toFixed(1) : 0;
 
     // Taxa de produção por hora
@@ -4063,7 +4096,7 @@ async function downloadClosingReport(monthKey) {
               <div class="stat-card">
                 <div class="stat-icon"><i class="fas fa-clock"></i></div>
                 <div class="stat-label">Tempo Produtivo</div>
-                <div class="stat-value">${productiveHours}</div>
+                <div class="stat-value">${productiveHours.toFixed(1)}</div>
                 <div class="stat-unit">horas</div>
               </div>
               <div class="stat-card">
@@ -4128,7 +4161,7 @@ async function downloadClosingReport(monthKey) {
               <div class="performance-card">
                 <div class="performance-icon"><i class="fas fa-pause-circle"></i></div>
                 <div class="performance-label">Total Parado</div>
-                <div class="performance-value">${totalDowntime}h</div>
+                <div class="performance-value">${totalDowntime}</div>
               </div>
             </div>
             
@@ -4158,7 +4191,7 @@ async function downloadClosingReport(monthKey) {
                     </div>
                     <div class="shift-stat">
                       <span class="shift-stat-label">Tempo Parado:</span>
-                      <span class="shift-stat-value">${shiftData.downtime}h</span>
+                      <span class="shift-stat-value">${shiftData.downtimeFormatted}</span>
                     </div>
                     <div class="shift-stat">
                       <span class="shift-stat-label">Nº Registros:</span>
@@ -4212,7 +4245,7 @@ async function downloadClosingReport(monthKey) {
                     </div>
                     <div class="machine-stat-item">
                       <span class="machine-stat-label">Paradas:</span>
-                      <span class="machine-stat-value">${machine.downtime}h</span>
+                      <span class="machine-stat-value">${machine.downtimeFormatted}</span>
                     </div>
                     <div class="machine-stat-item">
                       <span class="machine-stat-label">Usos:</span>
@@ -4251,7 +4284,7 @@ async function downloadClosingReport(monthKey) {
                     <td class="number-col">${op.quantity.toLocaleString()}</td>
                     <td class="number-col">${op.avgPerDay.toLocaleString()}</td>
                     <td class="number-col">${op.daysWorked}</td>
-                    <td class="number-col">${op.downtime}h</td>
+                    <td class="number-col">${op.downtimeFormatted}</td>
                     <td class="number-col">${op.count}</td>
                   </tr>
                 `).join('')}
@@ -4274,19 +4307,19 @@ async function downloadClosingReport(monthKey) {
               <div class="stat-card">
                 <div class="stat-icon"><i class="fas fa-percentage"></i></div>
                 <div class="stat-label">% do Tempo</div>
-                <div class="stat-value">${totalHoursAvailable > 0 ? ((totalDowntime / totalHoursAvailable) * 100).toFixed(1) : 0}%</div>
+                <div class="stat-value">${totalHoursAvailable > 0 ? ((totalDowntimeNumeric / totalHoursAvailable) * 100).toFixed(1) : 0}%</div>
                 <div class="stat-unit">parado</div>
               </div>
               <div class="stat-card">
                 <div class="stat-icon"><i class="fas fa-chart-pie"></i></div>
                 <div class="stat-label">Média por Registro</div>
-                <div class="stat-value">${filtered.length > 0 ? (totalDowntime / filtered.length).toFixed(1) : 0}</div>
+                <div class="stat-value">${filtered.length > 0 ? (totalDowntimeNumeric / filtered.length).toFixed(1) : 0}</div>
                 <div class="stat-unit">h/registro</div>
               </div>
               <div class="stat-card">
                 <div class="stat-icon"><i class="fas fa-tools"></i></div>
                 <div class="stat-label">Registros c/ Paradas</div>
-                <div class="stat-value">${filtered.filter(p => p.downtime > 0).length}</div>
+                <div class="stat-value">${filtered.filter(p => p.downtimeHours > 0 || p.downtimeMinutes > 0).length}</div>
                 <div class="stat-unit">registros</div>
               </div>
             </div>
@@ -4336,10 +4369,6 @@ async function downloadClosingReport(monthKey) {
         document.body.removeChild(pdfContainer);
     }
 }
-
-
-
-
 // Global functions
 window.showProductionModal = showProductionModal;
 window.deleteProduction = deleteProduction;
