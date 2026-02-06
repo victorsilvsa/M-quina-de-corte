@@ -994,6 +994,21 @@ function updateProductionView() {
 
     document.getElementById('calendar-days').innerHTML = calendarHtml;
 
+    // --- TABLE HEADER ---
+    const tableElement = document.getElementById('monthly-table-body').closest('table');
+    if (tableElement) {
+        const thead = tableElement.querySelector('thead');
+        thead.innerHTML = `
+            <tr class="primary-gradient">
+                <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Data</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Turno</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Operador</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Qtd</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Parada</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Ações</th>
+            </tr>`;
+    }
+
     // Table - iterate from 26th to 25th
     const isClosed = isMonthClosed(monthKey);
     let tableHtml = '';
@@ -1009,39 +1024,34 @@ function updateProductionView() {
             dayProds.forEach(p => {
                 const operator = operators[p.operatorId];
                 tableHtml += `
-              <tr class="${getProductionClass(p.quantity)}">
-                <td>${formatDate(dateStr)}</td>
-                <td>${operator ? getShiftBadge(operator.shift) : '-'}</td>
-                <td>${operator?.name || '-'}</td>
-                <td class="font-semibold">${(p.quantity || 0).toLocaleString()}</td>
-                <td>${p.downtime || 0}h</td>
-                <td>
-                  ${!isClosed && !isFuture ? `
-                    <button onclick="showProductionModal('${dateStr}', '${p.id}')" class="action-btn bg-cyan-100 text-cyan-700 hover:bg-cyan-200 mr-2">
+              <tr class="${getProductionClass(p.quantity)} border-b border-gray-100">
+                <td class="px-4 py-3 text-sm">${formatDate(dateStr)}</td>
+                <td class="px-4 py-3 text-sm">${operator ? getShiftBadge(operator.shift) : '-'}</td>
+                <td class="px-4 py-3 text-sm">${operator?.name || '-'}</td>
+                <td class="px-4 py-3 text-sm font-semibold">${(p.quantity || 0).toLocaleString()}</td>
+                <td class="px-4 py-3 text-sm">${p.downtime || 0}h</td>
+                <td class="px-4 py-3 text-sm">
+                  <div class="flex items-center gap-2">
+                    <button onclick="showProductionModal('${dateStr}', '${p.id}')" style="display:inline-block !important; visibility:visible !important;" class="p-2 bg-cyan-100 text-cyan-700 rounded hover:bg-cyan-200">
                       <i class="fas fa-edit"></i>
                     </button>
-                    <button onclick="deleteProduction('${p.id}')" class="action-btn bg-red-100 text-red-700 hover:bg-red-200">
+                    <button onclick="deleteProduction('${p.id}')" style="display:inline-block !important; visibility:visible !important;" class="p-2 bg-red-100 text-red-700 rounded hover:bg-red-200">
                       <i class="fas fa-trash"></i>
                     </button>
-                  ` : '<span class="text-gray-400">-</span>'}
+                  </div>
                 </td>
               </tr>
             `;
             });
         } else if (!isFuture) {
             tableHtml += `
-            <tr class="empty-row">
-              <td class="text-gray-400">${formatDate(dateStr)}</td>
-              <td class="text-gray-400">-</td>
-              <td class="text-gray-400">-</td>
-              <td class="text-gray-400">-</td>
-              <td class="text-gray-400">-</td>
-              <td>
-                ${!isClosed ? `
-                  <button onclick="showProductionModal('${dateStr}')" class="text-cyan-600 hover:text-cyan-800 text-sm font-medium">
-                    <i class="fas fa-plus mr-1"></i>Adicionar
-                  </button>
-                ` : '-'}
+            <tr class="empty-row border-b border-gray-50">
+              <td class="px-4 py-3 text-sm text-gray-400">${formatDate(dateStr)}</td>
+              <td colspan="4" class="px-4 py-3 text-sm text-gray-400 text-center italic">Sem registros</td>
+              <td class="px-4 py-3 text-sm">
+                <button onclick="showProductionModal('${dateStr}')" class="text-cyan-600 hover:text-cyan-800 font-medium">
+                  <i class="fas fa-plus mr-1"></i>Adicionar
+                </button>
               </td>
             </tr>
           `;
@@ -1055,21 +1065,8 @@ function updateProductionView() {
 }
 
 async function showProductionModal(date, productionId = null) {
-    const monthKey = getMonthKey(new Date(date + 'T00:00:00'));
-
-    // 🔒 Verifica se o mês está fechado
-    const closed = await isMonthClosed(monthKey);
-
-    // ❌ Se estiver fechado, NÃO abre modal
-    if (closed) {
-        showToast('Este mês está fechado. Não é possível criar ou editar registros.', 'error');
-        return;
-    }
-
-    // =========================
-    // ABAIXO CONTINUA NORMAL
-    // =========================
-
+    // ✅ REMOVIDO: Validação de mês fechado - agora ignora
+    
     const currentMachine = Object.entries(machines)
         .find(([id, m]) => m.name.includes(selectedMachine));
 
@@ -1082,9 +1079,10 @@ async function showProductionModal(date, productionId = null) {
         );
     }
 
+    // ✅ BUSCAR PRODUÇÃO CORRETAMENTE (Firebase retorna objeto simples)
     let production = null;
     if (productionId) {
-        production = productions[productionId];
+        production = productions[productionId]; // Acesso direto por ID
     }
 
     const lastOperatorKey = `lastOperator_${machineId}`;
@@ -1127,25 +1125,25 @@ async function showProductionModal(date, productionId = null) {
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Quantidade</label>
-                <input type="number" id="prod-quantity" required min="0"
+                <input type="number" id="prod-quantity" required min="0" value="${production?.quantity || ''}"
                     class="w-full px-3 py-2 border rounded-lg">
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Tempo Parado (h)</label>
-                <input type="number" id="prod-downtime" min="0"
+                <input type="number" id="prod-downtime" min="0" value="${production?.downtime || ''}"
                     class="w-full px-3 py-2 border rounded-lg">
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Observações</label>
                 <textarea id="prod-observations" rows="3"
-                    class="w-full px-3 py-2 border rounded-lg"></textarea>
+                    class="w-full px-3 py-2 border rounded-lg">${production?.observations || ''}</textarea>
             </div>
 
             <button type="submit"
                 class="w-full primary-gradient text-white font-semibold py-3 rounded-lg">
-                <i class="fas fa-save mr-2"></i> Salvar
+                <i class="fas fa-save mr-2"></i> ${production ? 'Atualizar' : 'Salvar'}
             </button>
         </form>
     `;
@@ -1166,10 +1164,48 @@ async function showProductionModal(date, productionId = null) {
             observations: document.getElementById('prod-observations').value
         };
 
-        await database.ref('productions').push(data);
-        showToast('Registro salvo!');
-        closeModal(modal);
+        try {
+            if (production && productionId) {
+                // ✅ ATUALIZAR EXISTENTE
+                await database.ref(`productions/${productionId}`).update(data);
+                showToast('Registro atualizado!');
+            } else {
+                // ✅ CRIAR NOVO
+                await database.ref('productions').push(data);
+                showToast('Registro salvo!');
+            }
+            
+            // Guardar último operador usado
+            localStorage.setItem(lastOperatorKey, data.operatorId);
+            closeModal(modal);
+        } catch (error) {
+            showToast('Erro ao salvar: ' + error.message, 'error');
+        }
     });
+}
+
+async function deleteProduction(id) {
+    const content = `
+        <div class="text-center">
+          <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
+          </div>
+          <p class="text-gray-600 mb-6">Tem certeza que deseja excluir?</p>
+          <div class="flex gap-3">
+            <button id="cancel-delete" class="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50">Cancelar</button>
+            <button id="confirm-delete" class="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"><i class="fas fa-trash mr-2"></i>Excluir</button>
+          </div>
+        </div>
+      `;
+
+    const modal = showModal(content, { title: 'Confirmar Exclusão' });
+
+    document.getElementById('cancel-delete').onclick = () => closeModal(modal);
+    document.getElementById('confirm-delete').onclick = async () => {
+        await database.ref(`productions/${id}`).remove();
+        closeModal(modal);
+        showToast('Registro excluído!');
+    };
 }
 
 
