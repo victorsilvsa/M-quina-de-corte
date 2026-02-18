@@ -1,5 +1,7 @@
 
 // Firebase Configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// Firebase Configuration
 const firebaseConfig = {
   apiKey: "AIzaSyCRJQcqfJ3nas1q7CnS0yk9OMjdSWHEIT8",
   authDomain: "ponto-91f0b.firebaseapp.com",
@@ -48,7 +50,7 @@ function formatDate(dateStr) {
 
     // ✅ Cria a data de forma segura
     const date = new Date(dateStr + 'T00:00:00');
-    
+
     // ✅ Valida se a data é válida
     if (isNaN(date.getTime())) {
         return 'Data inválida';
@@ -56,17 +58,17 @@ function formatDate(dateStr) {
 
     const days = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
     const months = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-    
+
     // ✅ Garante que os índices são válidos
     const dayIndex = date.getDay();
     const monthIndex = date.getMonth();
     const dayNumber = date.getDate();
-    
+
     // ✅ Validação extra dos índices
     if (dayIndex < 0 || dayIndex > 6 || monthIndex < 0 || monthIndex > 11) {
         return 'Data inválida';
     }
-    
+
     return `${days[dayIndex]}, ${dayNumber} ${months[monthIndex]}`;
 }
 
@@ -140,7 +142,7 @@ function isDateInCustomMonth(dateStr, refDate) {
 
     // ✅ Cria a data de forma segura
     const date = new Date(dateStr + 'T00:00:00');
-    
+
     // ✅ Valida se a data é válida
     if (isNaN(date.getTime())) {
         return false;
@@ -250,15 +252,15 @@ function getFilteredProductions() {
 
     if (!canViewAllShifts()) {
         const userShift = getUserShift();
-        
+
         // ✅ Verifica se operators existe antes de filtrar
         if (!operators || typeof operators !== 'object') {
             return [];
         }
-        
+
         const allowedOperators = Object.keys(operators)
             .filter(id => operators[id] && operators[id].shift === userShift);
-        
+
         // ✅ Filtra apenas se houver operadores válidos
         if (allowedOperators.length > 0) {
             filtered = filtered.filter(p => p.operatorId && allowedOperators.includes(p.operatorId));
@@ -403,19 +405,19 @@ const accessLogsRef = database.ref('accessLogs');
 function renderAccessLogItem(username, fullName, level, timestamp, isOnline) {
     const container = document.getElementById('access-log-container');
     if (!container) return null;
-    
+
     username = username || 'N/A';
     fullName = fullName || 'Usuário';
     level = level || 'Usuário';
     isOnline = isOnline || false;
-    
+
     if (!timestamp) return null;
-    
+
     const date = new Date(timestamp);
     const timeString = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     const dateString = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
     const initial = fullName.charAt(0).toUpperCase();
-    
+
     const logItem = document.createElement('div');
     logItem.style.cssText = `
         display: flex;
@@ -429,7 +431,7 @@ function renderAccessLogItem(username, fullName, level, timestamp, isOnline) {
         transition: transform 0.2s, box-shadow 0.2s;
         min-width: 0;
     `;
-    
+
     logItem.innerHTML = `
         <div style="display: flex; align-items: center; gap: 0.75rem; flex: 1; min-width: 0;">
             <div style="width: 40px; height: 40px; min-width: 40px; background: linear-gradient(135deg, ${isOnline ? '#10b981' : '#06b6d4'} 0%, ${isOnline ? '#059669' : '#0891b2'} 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1rem; flex-shrink: 0; position: relative;">
@@ -454,17 +456,17 @@ function renderAccessLogItem(username, fullName, level, timestamp, isOnline) {
             </span>
         </div>
     `;
-    
-    logItem.addEventListener('mouseenter', function() {
+
+    logItem.addEventListener('mouseenter', function () {
         this.style.transform = 'translateX(4px)';
         this.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.1)';
     });
-    
-    logItem.addEventListener('mouseleave', function() {
+
+    logItem.addEventListener('mouseleave', function () {
         this.style.transform = 'translateX(0)';
         this.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.05)';
     });
-    
+
     return logItem;
 }
 
@@ -472,29 +474,29 @@ function renderAccessLogItem(username, fullName, level, timestamp, isOnline) {
 function setupAccessLogsListener() {
     const container = document.getElementById('access-log-container');
     if (!container) return;
-    
+
     // Escutar mudanças nos logs de acesso
     accessLogsRef.orderByChild('timestamp').limitToLast(3).on('value', (snapshot) => {
         container.innerHTML = '';
-        
+
         const logs = [];
         snapshot.forEach((childSnapshot) => {
             const log = childSnapshot.val();
             logs.push(log);
         });
-        
+
         // Inverter para mostrar mais recente primeiro
         logs.reverse();
-        
+
         if (logs.length === 0) {
             container.innerHTML = '<p style="text-align: center; color: #9ca3af; padding: 2rem; font-size: 0.875rem;">Nenhum acesso registrado</p>';
         } else {
             logs.forEach(log => {
                 const logItem = renderAccessLogItem(
-                    log.username, 
-                    log.fullName, 
-                    log.level, 
-                    log.timestamp, 
+                    log.username,
+                    log.fullName,
+                    log.level,
+                    log.timestamp,
                     log.isOnline
                 );
                 if (logItem) {
@@ -508,7 +510,7 @@ function setupAccessLogsListener() {
 // Adicionar log de acesso no Firebase
 function addAccessLogToFirebase(userId, username, fullName, level) {
     const timestamp = new Date().toISOString();
-    
+
     // Criar novo log
     const newLogRef = accessLogsRef.push();
     newLogRef.set({
@@ -519,7 +521,7 @@ function addAccessLogToFirebase(userId, username, fullName, level) {
         timestamp: timestamp,
         isOnline: true
     });
-    
+
     // Limpar logs antigos (manter apenas 3)
     accessLogsRef.once('value', (snapshot) => {
         const logs = [];
@@ -529,10 +531,10 @@ function addAccessLogToFirebase(userId, username, fullName, level) {
                 timestamp: childSnapshot.val().timestamp
             });
         });
-        
+
         // Ordenar por timestamp e remover os mais antigos
         logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        
+
         if (logs.length > 3) {
             logs.slice(3).forEach(log => {
                 accessLogsRef.child(log.key).remove();
@@ -547,7 +549,7 @@ function setUserOnlineFirebase(userId, username, fullName, level) {
         online: true,
         lastAccess: new Date().toISOString()
     });
-    
+
     // Adicionar log de acesso
     addAccessLogToFirebase(userId, username, fullName, level);
 }
@@ -557,7 +559,7 @@ function setUserOfflineFirebase(userId) {
     usersRef.child(userId).update({
         online: false
     });
-    
+
     // Atualizar status nos logs
     accessLogsRef.orderByChild('userId').equalTo(userId).once('value', (snapshot) => {
         snapshot.forEach((childSnapshot) => {
@@ -572,38 +574,38 @@ function setUserOfflineFirebase(userId) {
 function updateLastAccessCard() {
     // Pegar o usuário atual do localStorage
     const savedUser = localStorage.getItem('currentUser');
-    
+
     if (!savedUser) {
         console.log('Nenhum usuário logado');
         return;
     }
-    
+
     const { id } = JSON.parse(savedUser);
-    
+
     // Buscar dados atualizados do Firebase
     usersRef.child(id).once('value', (snapshot) => {
         const currentUser = snapshot.val();
-        
+
         if (currentUser) {
             const levelNames = {
                 'admin': 'Administrador',
                 'supervisor': 'Supervisor',
                 'operador': 'Operador'
             };
-            
+
             const now = new Date();
-            const timeString = now.toLocaleTimeString('pt-BR', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
+            const timeString = now.toLocaleTimeString('pt-BR', {
+                hour: '2-digit',
+                minute: '2-digit'
             });
             const dateString = now.toLocaleDateString('pt-BR');
-            
+
             // Atualizar elementos na tela
             const nameElement = document.getElementById('last-access-name');
             const usernameElement = document.getElementById('last-access-username');
             const levelElement = document.getElementById('last-access-level');
             const timeElement = document.getElementById('last-access-time');
-            
+
             if (nameElement) nameElement.textContent = currentUser.name || 'Usuário';
             if (usernameElement) usernameElement.textContent = currentUser.username || '-';
             if (levelElement) levelElement.textContent = levelNames[currentUser.level] || currentUser.level;
@@ -621,7 +623,7 @@ function handleLogin(e) {
     usersRef.once('value', (snapshot) => {
         let userFound = null;
         let userId = null;
-        
+
         snapshot.forEach((childSnapshot) => {
             const user = childSnapshot.val();
             if (user.username === username && user.password === password) {
@@ -629,11 +631,11 @@ function handleLogin(e) {
                 userId = childSnapshot.key;
             }
         });
-        
+
         if (userFound && userId) {
             currentUser = { ...userFound, id: userId };
             localStorage.setItem('currentUser', JSON.stringify({ id: userId }));
-            
+
             // Marcar como online no Firebase
             setUserOnlineFirebase(
                 userId,
@@ -641,10 +643,10 @@ function handleLogin(e) {
                 userFound.name || 'Usuário',
                 userFound.level || 'Usuário'
             );
-            
+
             showMainApp();
             showToast('Login realizado com sucesso!');
-            
+
             // Atualizar card de último acesso
             updateLastAccessCard();
         } else {
@@ -661,7 +663,7 @@ function handleLogout() {
     if (currentUser && currentUser.id) {
         setUserOfflineFirebase(currentUser.id);
     }
-    
+
     currentUser = null;
     localStorage.removeItem('currentUser');
     document.getElementById('login-screen').classList.remove('hidden');
@@ -736,7 +738,7 @@ function setupEventListeners() {
 
     // Closing
     document.getElementById('close-month-btn').addEventListener('click', closeMonth);
-    
+
     // Settings tab - atualizar card ao clicar
     const settingsTabBtns = document.querySelectorAll('[data-tab="settings"]');
     settingsTabBtns.forEach(btn => {
@@ -747,7 +749,7 @@ function setupEventListeners() {
 }
 
 // Inicializar listener quando a página carregar
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     setupAccessLogsListener();
     updateLastAccessCard();
 });
@@ -779,6 +781,13 @@ function showMainApp() {
     updateSettingsView();
     updateClosingView();
     populateFilterSelects();
+    document.getElementById('personnel-tab').classList.toggle('hidden', !isAdminOrLeader);
+    document.getElementById('mobile-more-personnel').classList.toggle('hidden', !isAdminOrLeader);
+
+    // Inicializa a aba de pessoal
+    initializePersonnelTab();
+
+
 }
 
 function switchTab(tabId) {
@@ -867,14 +876,14 @@ function updateDashboard() {
     );
 
     const totalQuantity = filtered.reduce((sum, p) => sum + (p.quantity || 0), 0);
-    
+
     // ✅ CORRIGIDO: Calcular downtime em horas e minutos
     let totalDowntimeHours = filtered.reduce((sum, p) => sum + (p.downtimeHours || 0), 0);
     let totalDowntimeMinutes = filtered.reduce((sum, p) => sum + (p.downtimeMinutes || 0), 0);
     totalDowntimeHours += Math.floor(totalDowntimeMinutes / 60);
     totalDowntimeMinutes = totalDowntimeMinutes % 60;
     const totalDowntimeFormatted = `${totalDowntimeHours}h ${totalDowntimeMinutes}m`;
-    
+
     const uniqueDays = [...new Set(filtered.map(p => p.date))].length;
     const average = uniqueDays > 0 ? Math.round(totalQuantity / uniqueDays) : 0;
 
@@ -1031,12 +1040,12 @@ function updateProductionView() {
         if (dayProds.length > 0) {
             dayProds.forEach(p => {
                 const operator = operators[p.operatorId];
-                
+
                 // ✅ MONTAR TEMPO PARADO (horas e minutos)
                 const hours = p.downtimeHours || 0;
                 const minutes = p.downtimeMinutes || 0;
                 let downtimeDisplay = '';
-                
+
                 if (hours > 0 && minutes > 0) {
                     downtimeDisplay = `${hours}h ${minutes}min`;
                 } else if (hours > 0) {
@@ -1046,7 +1055,7 @@ function updateProductionView() {
                 } else {
                     downtimeDisplay = '-';
                 }
-                
+
                 tableHtml += `
               <tr class="${getProductionClass(p.quantity)} border-b border-gray-100">
                 <td class="px-4 py-3 text-sm">${formatDate(dateStr)}</td>
@@ -1092,7 +1101,7 @@ function updateProductionView() {
 
 async function showProductionModal(date, productionId = null) {
     // ✅ REMOVIDO: Validação de mês fechado - agora ignora
-    
+
     const currentMachine = Object.entries(machines)
         .find(([id, m]) => m.name.includes(selectedMachine));
 
@@ -1225,7 +1234,7 @@ async function showProductionModal(date, productionId = null) {
                 await database.ref('productions').push(data);
                 showToast('Registro salvo!');
             }
-            
+
             // Guardar último operador usado
             localStorage.setItem(lastOperatorKey, data.operatorId);
             closeModal(modal);
@@ -2053,7 +2062,7 @@ async function saveLimits() {
 function formatDowntime(hours, minutes) {
     hours = hours || 0;
     minutes = minutes || 0;
-    
+
     if (hours > 0 && minutes > 0) {
         return `${hours}h ${minutes}min`;
     } else if (hours > 0) {
@@ -2072,7 +2081,7 @@ async function populateFilterSelects() {
         // Buscar máquinas do Firebase
         const machinesRef = window.firebase.database().ref('machines');
         const machinesSnapshot = await machinesRef.once('value');
-        
+
         if (machinesSnapshot.exists()) {
             const machinesData = machinesSnapshot.val();
             const machineOptions = Object.entries(machinesData).map(([id, m]) =>
@@ -2086,11 +2095,11 @@ async function populateFilterSelects() {
         // Buscar operadores do Firebase
         const operatorsRef = window.firebase.database().ref('operators');
         const operatorsSnapshot = await operatorsRef.once('value');
-        
+
         if (operatorsSnapshot.exists()) {
             const operatorsData = operatorsSnapshot.val();
             let filteredOps = Object.entries(operatorsData);
-            
+
             // Filtrar por turno se necessário
             if (!canViewAllShifts()) {
                 const userShift = getUserShift();
@@ -2113,18 +2122,18 @@ async function populateFilterSelects() {
 
 function updateFilterVisibility() {
     const reportType = document.getElementById('report-type').value;
-    
+
     const machineContainer = document.getElementById('filter-machine-container');
     const operatorContainer = document.getElementById('filter-operator-container');
     const shiftContainer = document.getElementById('filter-shift-container');
-    
+
     // Esconder todos primeiro
     if (machineContainer) machineContainer.style.display = 'none';
     if (operatorContainer) operatorContainer.style.display = 'none';
     if (shiftContainer) shiftContainer.style.display = 'none';
-    
+
     // Mostrar baseado no tipo de relatório
-    switch(reportType) {
+    switch (reportType) {
         case 'complete':
             if (machineContainer) machineContainer.style.display = 'block';
             if (operatorContainer) operatorContainer.style.display = 'block';
@@ -2206,11 +2215,11 @@ function generateReport() {
     const totalQuantity = filtered.reduce((sum, p) => sum + (p.quantity || 0), 0);
     let totalDowntimeHours = filtered.reduce((sum, p) => sum + (p.downtimeHours || 0), 0);
     let totalDowntimeMinutes = filtered.reduce((sum, p) => sum + (p.downtimeMinutes || 0), 0);
-    
+
     // Converter minutos extras para horas
     totalDowntimeHours += Math.floor(totalDowntimeMinutes / 60);
     totalDowntimeMinutes = totalDowntimeMinutes % 60;
-    
+
     const uniqueDays = [...new Set(filtered.map(p => p.date))].length;
 
     // Pagination
@@ -2348,24 +2357,24 @@ async function exportToPDF() {
     // ✅ FILTRO ADAPTADO PARA MÊS CUSTOMIZADO (26 a 25)
     let filtered = getFilteredProductions()
         .filter(p => isDateInCustomMonth(p.date, currentMonth));
-    
+
     // ✅ ORDENAR: MÁQUINA → DATA
     filtered.sort((a, b) => {
         const machineA = machines[a.machineId];
         const machineB = machines[b.machineId];
-        
+
         if (!machineA || !machineB || !machineA.name || !machineB.name) return 0;
-        
+
         const ma = parseInt(machineA.name.replace(/\D/g, '')) || 0;
         const mb = parseInt(machineB.name.replace(/\D/g, '')) || 0;
-        
+
         if (ma !== mb) return ma - mb;
-        
+
         const dateA = new Date(a.date);
         const dateB = new Date(b.date);
         return dateA.getTime() - dateB.getTime();
     });
-    
+
     if (filtered.length === 0) {
         showToast('Nenhum dado para exportar', 'error');
         return;
@@ -2377,11 +2386,11 @@ async function exportToPDF() {
     const totalQuantity = filtered.reduce((sum, p) => sum + (p.quantity || 0), 0);
     let totalDowntimeHours = filtered.reduce((sum, p) => sum + (p.downtimeHours || 0), 0);
     let totalDowntimeMinutes = filtered.reduce((sum, p) => sum + (p.downtimeMinutes || 0), 0);
-    
+
     // Converter minutos extras para horas
     totalDowntimeHours += Math.floor(totalDowntimeMinutes / 60);
     totalDowntimeMinutes = totalDowntimeMinutes % 60;
-    
+
     const uniqueDays = [...new Set(filtered.map(p => p.date))].length;
     const average = uniqueDays > 0 ? Math.round(totalQuantity / uniqueDays) : 0;
 
@@ -2575,10 +2584,10 @@ async function exportToPDF() {
 
     try {
         await new Promise(resolve => setTimeout(resolve, 500));
-        const canvas = await html2canvas(summaryContainer, { 
-            scale: 2, 
-            useCORS: true, 
-            logging: false, 
+        const canvas = await html2canvas(summaryContainer, {
+            scale: 2,
+            useCORS: true,
+            logging: false,
             backgroundColor: '#ffffff',
             width: 793,
             windowWidth: 793
@@ -2607,30 +2616,30 @@ async function exportToPDF() {
         pdf.addPage();
 
         const operator = data.operator;
-        
+
         // ✅ ORDENAR: MÁQUINA → DATA (para cada operador)
         const prods = data.productions.sort((a, b) => {
             const machineA = machines[a.machineId];
             const machineB = machines[b.machineId];
-            
+
             if (!machineA || !machineB || !machineA.name || !machineB.name) return 0;
-            
+
             const ma = parseInt(machineA.name.replace(/\D/g, '')) || 0;
             const mb = parseInt(machineB.name.replace(/\D/g, '')) || 0;
-            
+
             if (ma !== mb) return ma - mb;
-            
+
             const dateA = new Date(a.date);
             const dateB = new Date(b.date);
             return dateA.getTime() - dateB.getTime();
         });
-        
+
         const total = prods.reduce((sum, p) => sum + (p.quantity || 0), 0);
         let downHours = prods.reduce((sum, p) => sum + (p.downtimeHours || 0), 0);
         let downMinutes = prods.reduce((sum, p) => sum + (p.downtimeMinutes || 0), 0);
         downHours += Math.floor(downMinutes / 60);
         downMinutes = downMinutes % 60;
-        
+
         const uniqueOpDays = [...new Set(prods.map(p => p.date))].length;
         const avgPerDay = uniqueOpDays > 0 ? Math.round(total / uniqueOpDays) : 0;
 
@@ -2777,10 +2786,10 @@ async function exportToPDF() {
 
             try {
                 await new Promise(resolve => setTimeout(resolve, 300));
-                const canvas = await html2canvas(detailContainer, { 
-                    scale: 2, 
-                    useCORS: true, 
-                    logging: false, 
+                const canvas = await html2canvas(detailContainer, {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
                     backgroundColor: '#ffffff',
                     width: 793,
                     windowWidth: 793
@@ -2788,7 +2797,7 @@ async function exportToPDF() {
                 const imgData = canvas.toDataURL('image/png');
                 const pdfWidth = 210;
                 const imgHeight = (canvas.height * pdfWidth) / canvas.width;
-                
+
                 // ✅ Verifica se a altura da imagem cabe em uma página A4 (297mm)
                 const maxPdfHeight = 297;
                 if (imgHeight > maxPdfHeight) {
@@ -2994,10 +3003,10 @@ function exportToExcel() {
     // Header das tabelas
     ['A6', 'B6'].forEach(cell => { if (wsSummary[cell]) wsSummary[cell].s = styles.subHeader; });
     ['A13', 'B13', 'C13', 'D13'].forEach(cell => { if (wsSummary[cell]) wsSummary[cell].s = styles.subHeader; });
-    
+
     const topHeaderRow = summaryData.length - topOperators.length;
-    ['A' + topHeaderRow, 'B' + topHeaderRow, 'C' + topHeaderRow, 'D' + topHeaderRow].forEach(cell => { 
-        if (wsSummary[cell]) wsSummary[cell].s = styles.subHeader; 
+    ['A' + topHeaderRow, 'B' + topHeaderRow, 'C' + topHeaderRow, 'D' + topHeaderRow].forEach(cell => {
+        if (wsSummary[cell]) wsSummary[cell].s = styles.subHeader;
     });
 
     // Células de dados
@@ -3350,9 +3359,9 @@ async function updateClosingView() {
                             <i class="fas fa-download"></i><span class="ml-1 hidden sm:inline">PDF</span>
                         </button>
                         ${c.reopened
-                            ? '<span class="text-xs text-red-600 whitespace-nowrap"><i class="fas fa-unlock"></i><span class="hidden sm:inline ml-1">Reaberto</span></span>'
-                            : '<span class="text-xs text-green-600 whitespace-nowrap"><i class="fas fa-lock"></i><span class="hidden sm:inline ml-1">Fechado</span></span>'
-                        }
+                ? '<span class="text-xs text-red-600 whitespace-nowrap"><i class="fas fa-unlock"></i><span class="hidden sm:inline ml-1">Reaberto</span></span>'
+                : '<span class="text-xs text-green-600 whitespace-nowrap"><i class="fas fa-lock"></i><span class="hidden sm:inline ml-1">Fechado</span></span>'
+            }
                     </div>
                 </td>
             </tr>
@@ -3370,13 +3379,1095 @@ async function updateClosingView() {
     }
 }
 
+// ============================================
+// PERSONNEL DATA (Atestados, Faltas, Advertências, Férias)
+// ============================================
+
+let personnelData = {
+    certificates: {},
+    absences: {},
+    warnings: {},
+    vacations: {}
+};
+
+let filteredShift = null;
+
+// ============================================
+// SETUP FIREBASE LISTENERS
+// ============================================
+
+function setupPersonnelListeners() {
+    database.ref('personnel/certificates').on('value', (snapshot) => {
+        personnelData.certificates = snapshot.val() || {};
+        if (currentUser) updatePersonnelView();
+    });
+
+    database.ref('personnel/absences').on('value', (snapshot) => {
+        personnelData.absences = snapshot.val() || {};
+        if (currentUser) updatePersonnelView();
+    });
+
+    database.ref('personnel/warnings').on('value', (snapshot) => {
+        personnelData.warnings = snapshot.val() || {};
+        if (currentUser) updatePersonnelView();
+    });
+
+    database.ref('personnel/vacations').on('value', (snapshot) => {
+        personnelData.vacations = snapshot.val() || {};
+        if (currentUser) updatePersonnelView();
+    });
+}
+
+// ============================================
+// UPDATE PERSONNEL VIEW
+// ============================================
+
+function updatePersonnelView() {
+    const isAdmin = currentUser?.role === 'admin';
+    const isLeader = currentUser?.role === 'leader';
+
+    if (!isAdmin && !isLeader) return;
+
+    renderCertificatesTab();
+    renderAbsencesTab();
+    renderWarningsTab();
+    renderVacationsTab();
+}
+
+
+
+// ============================================
+// GET OPERATORS FILTERED BY SHIFT
+// ============================================
+
+function getOperatorsByShift(shift) {
+    if (!shift) return [];
+    return Object.entries(operators || {})
+        .filter(([id, op]) => op && op.shift === shift)
+        .map(([id, op]) => ({ id, ...op }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+// ============================================
+// FILTER DATA BY SHIFT
+// ============================================
+
+function filterDataByShift(data, shift) {
+    if (!shift) return Object.entries(data || {}).map(([id, item]) => ({ id, ...item }));
+
+    const shiftNum = shift.replace(/º.*/, '');
+    return Object.entries(data || {})
+        .filter(([id, item]) => item && item.shift === shiftNum)
+        .map(([id, item]) => ({ id, ...item }));
+}
+
+// ============================================
+// ATESTADOS (CERTIFICATES)
+// ============================================
+
+function renderCertificatesTab() {
+    const container = document.getElementById('certificates-container');
+    if (!container) return;
+
+    const certs = filterDataByShift(personnelData.certificates, filteredShift);
+
+    if (certs.length === 0) {
+        container.innerHTML = '<div class="col-span-full text-center py-12"><div class="inline-block p-4 bg-blue-100 rounded-full mb-3"><i class="fas fa-file-medical text-2xl text-blue-500"></i></div><p class="text-gray-500 font-medium">Nenhum atestado cadastrado</p></div>';
+        return;
+    }
+
+    container.innerHTML = certs.map(cert => `
+        <div class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border-2 border-blue-200 p-5 hover:shadow-xl transition-all duration-300 certificate-card group">
+            <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center gap-3 flex-1 min-w-0">
+                    <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform"><i class="fas fa-file-medical text-white text-lg"></i></div>
+                    <div class="min-w-0 flex-1">
+                        <p class="font-bold text-gray-800 text-sm truncate">${cert.operatorName || '-'}</p>
+                        <p class="text-xs text-gray-600 font-medium"><i class="fas fa-users text-gray-500 mr-1"></i>Turno ${cert.shift || '-'}</p>
+                    </div>
+                </div>
+                <span class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full flex-shrink-0 ml-2 whitespace-nowrap">${cert.type === 'Outros' ? cert.outrosType : cert.type || 'Médico'}</span>
+            </div>
+            <div class="space-y-2 mb-4 pb-4 border-b-2 border-blue-200">
+                <div class="flex justify-between text-xs"><span class="text-gray-600 font-medium"><i class="far fa-calendar text-gray-500 mr-1"></i>Data:</span><span class="font-bold text-gray-800">${cert.date || '-'}</span></div>
+                <div class="flex justify-between text-xs"><span class="text-gray-600 font-medium"><i class="fas fa-hourglass-half text-gray-500 mr-1"></i>Dias:</span><span class="font-bold text-blue-600">${cert.days || 0}</span></div>
+                <div class="flex justify-between text-xs"><span class="text-gray-600 font-medium"><i class="fas fa-check-circle text-gray-500 mr-1"></i>Status:</span><span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full font-bold">${cert.status || 'Pendente'}</span></div>
+            </div>
+            <button class="w-full py-2 text-blue-600 hover:bg-blue-100 rounded-lg font-bold text-sm transition-all certificate-expand-btn" data-cert-id="${cert.id}">
+                <i class="fas fa-chevron-down"></i> Detalhes
+            </button>
+            <div class="hidden mt-3 pt-3 border-t-2 border-blue-200 certificate-expanded-content" data-cert-id="${cert.id}">
+                <div class="grid grid-cols-2 gap-3 text-sm mb-4 bg-white p-3 rounded-lg">
+                    <div><span class="text-gray-600 text-xs font-bold"><i class="fas fa-user mr-1"></i>Nome:</span><br><span class="font-bold truncate text-gray-800">${cert.operatorName}</span></div>
+                    <div><span class="text-gray-600 text-xs font-bold"><i class="fas fa-list mr-1"></i>Tipo:</span><br><span class="font-bold text-blue-600">${cert.type === 'Outros' ? cert.outrosType : cert.type}</span></div>
+                    <div><span class="text-gray-600 text-xs font-bold"><i class="far fa-calendar mr-1"></i>Data:</span><br><span class="font-bold text-gray-800">${cert.date}</span></div>
+                    <div><span class="text-gray-600 text-xs font-bold"><i class="fas fa-hashtag mr-1"></i>Dias:</span><br><span class="font-bold text-blue-600">${cert.days}</span></div>
+                </div>
+                <div class="mb-4 bg-white p-3 rounded-lg"><span class="text-gray-600 text-xs font-bold"><i class="fas fa-comment mr-1"></i>Observação:</span><br><p class="text-sm mt-1 text-gray-700">${cert.observation || 'Sem observações'}</p></div>
+                <div class="flex gap-2">
+                    <button class="flex-1 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 text-sm font-bold certificate-delete-btn transition-all" data-cert-id="${cert.id}"><i class="fas fa-trash mr-1"></i>Excluir</button>
+                    <button class="flex-1 px-3 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 text-sm font-bold certificate-edit-btn transition-all" data-cert-id="${cert.id}"><i class="fas fa-edit mr-1"></i>Editar</button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+
+    setupCertificateEventListeners();
+}
+
+function setupCertificateEventListeners() {
+    document.querySelectorAll('.certificate-expand-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const certId = btn.dataset.certId;
+            const expandedContent = document.querySelector(`.certificate-expanded-content[data-cert-id="${certId}"]`);
+            expandedContent.classList.toggle('hidden');
+            btn.querySelector('i').classList.toggle('fa-chevron-down');
+            btn.querySelector('i').classList.toggle('fa-chevron-up');
+        });
+    });
+
+    document.querySelectorAll('.certificate-delete-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const certId = btn.dataset.certId;
+            showDeleteConfirmation('atestado', () => {
+                database.ref(`personnel/certificates/${certId}`).remove();
+                showToast('Atestado excluído com sucesso!');
+            });
+        });
+    });
+
+    document.querySelectorAll('.certificate-edit-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const certId = btn.dataset.certId;
+            showCertificateEditModal(personnelData.certificates[certId], certId);
+        });
+    });
+}
+
+function showCertificateEditModal(cert, certId) {
+    const userShift = currentUser?.shift;
+    const operatorOptions = getOperatorsByShift(cert?.shift || userShift).map(op =>
+        `<option value="${op.id}" ${cert?.operatorId === op.id ? 'selected' : ''}>${op.name}</option>`
+    ).join('');
+
+    const content = `
+        <form class="space-y-4" id="cert-edit-form">
+            <div>
+                <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-user mr-2 text-cyan-600"></i>Operador</label>
+                <select id="cert-op-id" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium" required>
+                    <option value="">Selecione...</option>
+                    ${operatorOptions}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-list mr-2 text-cyan-600"></i>Tipo</label>
+                <select id="cert-type" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium" required>
+                    <option value="Médico" ${cert?.type === 'Médico' ? 'selected' : ''}>Médico</option>
+                    <option value="Outros" ${cert?.type === 'Outros' ? 'selected' : ''}>Outros</option>
+                </select>
+            </div>
+            <div id="cert-outros-field" class="hidden">
+                <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-pen-to-square mr-2 text-cyan-600"></i>Especifique o tipo</label>
+                <input type="text" id="cert-outros-type" value="${cert?.outrosType || ''}" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium" placeholder="Ex: Psicólogo, Fisioterapeuta...">
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-800 mb-2"><i class="far fa-calendar mr-2 text-cyan-600"></i>Data</label>
+                <input type="date" value="${cert?.date || ''}" id="cert-date" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium" required>
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-hourglass-half mr-2 text-cyan-600"></i>Dias</label>
+                <input type="number" value="${cert?.days || 1}" id="cert-days" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium" required min="1">
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-comment mr-2 text-cyan-600"></i>Observação</label>
+                <textarea id="cert-obs" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium">${cert?.observation || ''}</textarea>
+            </div>
+            <button type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-3 rounded-lg font-bold hover:shadow-lg transition-all"><i class="fas fa-check mr-2"></i>Salvar</button>
+        </form>
+    `;
+    const modal = showModal(content, { title: '<i class="fas fa-edit mr-2"></i>Editar Atestado' });
+
+    const typeSelect = document.getElementById('cert-type');
+    const outrosField = document.getElementById('cert-outros-field');
+    typeSelect?.addEventListener('change', () => {
+        if (typeSelect.value === 'Outros') {
+            outrosField.classList.remove('hidden');
+        } else {
+            outrosField.classList.add('hidden');
+        }
+    });
+    if (cert?.type === 'Outros') outrosField.classList.remove('hidden');
+
+    document.getElementById('cert-edit-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const operatorId = document.getElementById('cert-op-id').value;
+        const selectedOperator = operators[operatorId];
+
+        const data = {
+            operatorId: operatorId,
+            operatorName: selectedOperator?.name || '',
+            shift: selectedOperator?.shift || currentUser?.shift,
+            type: document.getElementById('cert-type').value,
+            outrosType: document.getElementById('cert-type').value === 'Outros' ? document.getElementById('cert-outros-type').value : null,
+            date: document.getElementById('cert-date').value,
+            days: parseInt(document.getElementById('cert-days').value),
+            observation: document.getElementById('cert-obs').value,
+            status: 'Aprovado',
+            operatorRole: selectedOperator?.role || 'Operador',
+            department: 'Produção'
+        };
+
+        database.ref(`personnel/certificates/${certId}`).update(data).then(() => {
+            showToast('Atestado atualizado com sucesso!');
+            document.querySelectorAll('.modal-overlay').forEach(m => closeModal(m));
+        }).catch(error => {
+            showToast('Erro ao atualizar: ' + error.message, 'error');
+        });
+    });
+}
+
+// ============================================
+// FALTAS (ABSENCES)
+// ============================================
+
+function renderAbsencesTab() {
+    const container = document.getElementById('absences-container');
+    if (!container) return;
+
+    const absences = filterDataByShift(personnelData.absences, filteredShift);
+
+    if (absences.length === 0) {
+        container.innerHTML = '<div class="col-span-full text-center py-12"><div class="inline-block p-4 bg-red-100 rounded-full mb-3"><i class="fas fa-user-slash text-2xl text-red-500"></i></div><p class="text-gray-500 font-medium">Nenhuma falta registrada</p></div>';
+        return;
+    }
+
+    container.innerHTML = absences.map(abs => `
+        <div class="bg-gradient-to-br from-red-50 to-orange-50 rounded-xl border-2 border-red-200 p-5 hover:shadow-xl transition-all duration-300 absence-card group">
+            <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center gap-3 flex-1 min-w-0">
+                    <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform"><i class="fas fa-user-slash text-white text-lg"></i></div>
+                    <div class="min-w-0 flex-1">
+                        <p class="font-bold text-gray-800 text-sm truncate">${abs.operatorName || '-'}</p>
+                        <p class="text-xs text-gray-600 font-medium"><i class="fas fa-users text-gray-500 mr-1"></i>Turno ${abs.shift || '-'}</p>
+                    </div>
+                </div>
+                <span class="px-3 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-full flex-shrink-0 ml-2 whitespace-nowrap">${abs.type || 'Injustificada'}</span>
+            </div>
+            <div class="space-y-2 mb-4 pb-4 border-b-2 border-red-200">
+                <div class="flex justify-between text-xs"><span class="text-gray-600 font-medium"><i class="far fa-calendar text-gray-500 mr-1"></i>Data:</span><span class="font-bold text-gray-800">${abs.date || '-'}</span></div>
+                <div class="flex justify-between text-xs"><span class="text-gray-600 font-medium"><i class="fas fa-chart-bar text-gray-500 mr-1"></i>Total:</span><span class="font-bold text-red-600">${abs.totalAbsences || 0}</span></div>
+            </div>
+            <button class="w-full py-2 text-red-600 hover:bg-red-100 rounded-lg font-bold text-sm transition-all absence-expand-btn" data-abs-id="${abs.id}">
+                <i class="fas fa-chevron-down"></i> Detalhes
+            </button>
+            <div class="hidden mt-3 pt-3 border-t-2 border-red-200 absence-expanded-content" data-abs-id="${abs.id}">
+                <div class="grid grid-cols-2 gap-3 text-sm mb-4 bg-white p-3 rounded-lg">
+                    <div><span class="text-gray-600 text-xs font-bold"><i class="fas fa-user mr-1"></i>Nome:</span><br><span class="font-bold truncate text-gray-800">${abs.operatorName}</span></div>
+                    <div><span class="text-gray-600 text-xs font-bold"><i class="far fa-calendar mr-1"></i>Data:</span><br><span class="font-bold text-gray-800">${abs.date}</span></div>
+                    <div><span class="text-gray-600 text-xs font-bold"><i class="fas fa-users mr-1"></i>Turno:</span><br><span class="font-bold text-red-600">${abs.shift}</span></div>
+                    <div><span class="text-gray-600 text-xs font-bold"><i class="fas fa-list mr-1"></i>Tipo:</span><br><span class="font-bold text-gray-800">${abs.type}</span></div>
+                </div>
+                <div class="flex gap-2">
+                    <button class="flex-1 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 text-sm font-bold absence-delete-btn transition-all" data-abs-id="${abs.id}"><i class="fas fa-trash mr-1"></i>Excluir</button>
+                    <button class="flex-1 px-3 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 text-sm font-bold absence-edit-btn transition-all" data-abs-id="${abs.id}"><i class="fas fa-edit mr-1"></i>Editar</button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+
+    setupAbsenceEventListeners();
+}
+
+function setupAbsenceEventListeners() {
+    document.querySelectorAll('.absence-expand-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const absId = btn.dataset.absId;
+            const expandedContent = document.querySelector(`.absence-expanded-content[data-abs-id="${absId}"]`);
+            expandedContent.classList.toggle('hidden');
+            btn.querySelector('i').classList.toggle('fa-chevron-down');
+            btn.querySelector('i').classList.toggle('fa-chevron-up');
+        });
+    });
+
+    document.querySelectorAll('.absence-delete-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const absId = btn.dataset.absId;
+            showDeleteConfirmation('falta', () => {
+                database.ref(`personnel/absences/${absId}`).remove();
+                showToast('Falta excluída com sucesso!');
+            });
+        });
+    });
+
+    document.querySelectorAll('.absence-edit-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const absId = btn.dataset.absId;
+            showAbsenceEditModal(Object.values(personnelData.absences).find(a => Object.keys(personnelData.absences).find(k => k === absId)), absId);
+        });
+    });
+}
+
+function showAbsenceEditModal(abs, absId) {
+    const userShift = currentUser?.shift;
+    const operatorOptions = getOperatorsByShift(abs?.shift || userShift).map(op =>
+        `<option value="${op.id}" ${abs?.operatorId === op.id ? 'selected' : ''}>${op.name}</option>`
+    ).join('');
+
+    const content = `
+        <form class="space-y-4" id="abs-edit-form">
+            <div>
+                <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-user mr-2 text-cyan-600"></i>Operador</label>
+                <select id="abs-op-id" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium" required>
+                    <option value="">Selecione...</option>
+                    ${operatorOptions}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-800 mb-2"><i class="far fa-calendar mr-2 text-cyan-600"></i>Data</label>
+                <input type="date" value="${abs?.date || ''}" id="abs-date" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium" required>
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-list mr-2 text-cyan-600"></i>Tipo</label>
+                <select id="abs-type" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium">
+                    <option value="Justificada" ${abs?.type === 'Justificada' ? 'selected' : ''}>Justificada</option>
+                    <option value="Injustificada" ${abs?.type === 'Injustificada' ? 'selected' : ''}>Injustificada</option>
+                </select>
+            </div>
+            <button type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-3 rounded-lg font-bold hover:shadow-lg transition-all"><i class="fas fa-check mr-2"></i>Salvar</button>
+        </form>
+    `;
+    const modal = showModal(content, { title: '<i class="fas fa-edit mr-2"></i>Editar Falta' });
+
+    document.getElementById('abs-edit-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const operatorId = document.getElementById('abs-op-id').value;
+        const selectedOperator = operators[operatorId];
+
+        const data = {
+            operatorId: operatorId,
+            operatorName: selectedOperator?.name || '',
+            date: document.getElementById('abs-date').value,
+            type: document.getElementById('abs-type').value,
+            shift: selectedOperator?.shift || currentUser?.shift,
+            totalAbsences: 1,
+            monthTotal: 1,
+            operatorRole: selectedOperator?.role || 'Operador',
+            department: 'Produção'
+        };
+
+        database.ref(`personnel/absences/${absId}`).update(data).then(() => {
+            showToast('Falta atualizada com sucesso!');
+            document.querySelectorAll('.modal-overlay').forEach(m => closeModal(m));
+        }).catch(error => {
+            showToast('Erro ao atualizar: ' + error.message, 'error');
+        });
+    });
+}
+
+// ============================================
+// ADVERTÊNCIAS (WARNINGS)
+// ============================================
+
+function renderWarningsTab() {
+    const container = document.getElementById('warnings-container');
+    if (!container) return;
+
+    const warnings = filterDataByShift(personnelData.warnings, filteredShift);
+
+    if (warnings.length === 0) {
+        container.innerHTML = '<div class="col-span-full text-center py-12"><div class="inline-block p-4 bg-orange-100 rounded-full mb-3"><i class="fas fa-flag text-2xl text-orange-500"></i></div><p class="text-gray-500 font-medium">Nenhuma advertência</p></div>';
+        return;
+    }
+
+    container.innerHTML = warnings.map(warn => `
+        <div class="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl border-2 border-orange-200 p-5 hover:shadow-xl transition-all duration-300 warning-card group">
+            <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center gap-3 flex-1 min-w-0">
+                    <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform"><i class="fas fa-flag text-white text-lg"></i></div>
+                    <div class="min-w-0 flex-1">
+                        <p class="font-bold text-gray-800 text-sm truncate">${warn.operatorName || '-'}</p>
+                        <p class="text-xs text-gray-600 font-medium"><i class="fas fa-users text-gray-500 mr-1"></i>Turno ${warn.shift || '-'}</p>
+                    </div>
+                </div>
+                <span class="px-3 py-1 bg-orange-100 text-orange-700 text-xs font-bold rounded-full flex-shrink-0 ml-2 whitespace-nowrap">${warn.level || 'Nível 1'}</span>
+            </div>
+            <div class="space-y-2 mb-4 pb-4 border-b-2 border-orange-200">
+                <div class="flex justify-between text-xs"><span class="text-gray-600 font-medium"><i class="far fa-calendar text-gray-500 mr-1"></i>Data:</span><span class="font-bold text-gray-800">${warn.date || '-'}</span></div>
+                <div class="flex justify-between text-xs"><span class="text-gray-600 font-medium"><i class="fas fa-question-circle text-gray-500 mr-1"></i>Motivo:</span><span class="font-bold truncate text-orange-600">${warn.reason || '-'}</span></div>
+            </div>
+            <button class="w-full py-2 text-orange-600 hover:bg-orange-100 rounded-lg font-bold text-sm transition-all warning-expand-btn" data-warn-id="${warn.id}">
+                <i class="fas fa-chevron-down"></i> Detalhes
+            </button>
+            <div class="hidden mt-3 pt-3 border-t-2 border-orange-200 warning-expanded-content" data-warn-id="${warn.id}">
+                <div class="grid grid-cols-2 gap-3 text-sm mb-4 bg-white p-3 rounded-lg">
+                    <div><span class="text-gray-600 text-xs font-bold"><i class="fas fa-user mr-1"></i>Nome:</span><br><span class="font-bold truncate text-gray-800">${warn.operatorName}</span></div>
+                    <div><span class="text-gray-600 text-xs font-bold"><i class="fas fa-layer-group mr-1"></i>Nível:</span><br><span class="font-bold text-orange-600">${warn.level}</span></div>
+                    <div><span class="text-gray-600 text-xs font-bold"><i class="fas fa-question-circle mr-1"></i>Motivo:</span><br><span class="font-bold truncate text-gray-800">${warn.reason}</span></div>
+                    <div><span class="text-gray-600 text-xs font-bold"><i class="far fa-calendar mr-1"></i>Data:</span><br><span class="font-bold text-gray-800">${warn.date}</span></div>
+                </div>
+                <div class="mb-4 bg-white p-3 rounded-lg"><span class="text-gray-600 text-xs font-bold"><i class="fas fa-pen-to-square mr-1"></i>Descrição:</span><br><p class="text-sm mt-1 text-gray-700">${warn.description || 'Sem descrição'}</p></div>
+                <div class="flex gap-2">
+                    <button class="flex-1 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 text-sm font-bold warning-delete-btn transition-all" data-warn-id="${warn.id}"><i class="fas fa-trash mr-1"></i>Excluir</button>
+                    <button class="flex-1 px-3 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 text-sm font-bold warning-edit-btn transition-all" data-warn-id="${warn.id}"><i class="fas fa-edit mr-1"></i>Editar</button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+
+    setupWarningEventListeners();
+}
+
+function setupWarningEventListeners() {
+    document.querySelectorAll('.warning-expand-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const warnId = btn.dataset.warnId;
+            const expandedContent = document.querySelector(`.warning-expanded-content[data-warn-id="${warnId}"]`);
+            expandedContent.classList.toggle('hidden');
+            btn.querySelector('i').classList.toggle('fa-chevron-down');
+            btn.querySelector('i').classList.toggle('fa-chevron-up');
+        });
+    });
+
+    document.querySelectorAll('.warning-delete-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const warnId = btn.dataset.warnId;
+            showDeleteConfirmation('advertência', () => {
+                database.ref(`personnel/warnings/${warnId}`).remove();
+                showToast('Advertência excluída com sucesso!');
+            });
+        });
+    });
+
+    document.querySelectorAll('.warning-edit-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const warnId = btn.dataset.warnId;
+            showWarningEditModal(Object.values(personnelData.warnings).find(w => Object.keys(personnelData.warnings).find(k => k === warnId)), warnId);
+        });
+    });
+}
+
+function showWarningEditModal(warn, warnId) {
+    const userShift = currentUser?.shift;
+    const operatorOptions = getOperatorsByShift(warn?.shift || userShift).map(op =>
+        `<option value="${op.id}" ${warn?.operatorId === op.id ? 'selected' : ''}>${op.name}</option>`
+    ).join('');
+
+    const content = `
+        <form class="space-y-4" id="warn-edit-form">
+            <div>
+                <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-user mr-2 text-cyan-600"></i>Operador</label>
+                <select id="warn-op-id" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium" required>
+                    <option value="">Selecione...</option>
+                    ${operatorOptions}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-exclamation-triangle mr-2 text-cyan-600"></i>Nível</label>
+                <select id="warn-level" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium">
+                    <option value="Nível 1" ${warn?.level === 'Nível 1' ? 'selected' : ''}>Nível 1</option>
+                    <option value="Nível 2" ${warn?.level === 'Nível 2' ? 'selected' : ''}>Nível 2</option>
+                    <option value="Nível 3" ${warn?.level === 'Nível 3' ? 'selected' : ''}>Nível 3</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-question-circle mr-2 text-cyan-600"></i>Motivo</label>
+                <input type="text" value="${warn?.reason || ''}" id="warn-reason" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium" required>
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-800 mb-2"><i class="far fa-calendar mr-2 text-cyan-600"></i>Data</label>
+                <input type="date" value="${warn?.date || ''}" id="warn-date" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium" required>
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-pen-to-square mr-2 text-cyan-600"></i>Descrição</label>
+                <textarea id="warn-description" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium">${warn?.description || ''}</textarea>
+            </div>
+            <button type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-3 rounded-lg font-bold hover:shadow-lg transition-all"><i class="fas fa-check mr-2"></i>Salvar</button>
+        </form>
+    `;
+    const modal = showModal(content, { title: '<i class="fas fa-edit mr-2"></i>Editar Advertência' });
+
+    document.getElementById('warn-edit-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const operatorId = document.getElementById('warn-op-id').value;
+        const selectedOperator = operators[operatorId];
+
+        const data = {
+            operatorId: operatorId,
+            operatorName: selectedOperator?.name || '',
+            shift: selectedOperator?.shift || currentUser?.shift,
+            level: document.getElementById('warn-level').value,
+            reason: document.getElementById('warn-reason').value,
+            date: document.getElementById('warn-date').value,
+            description: document.getElementById('warn-description').value,
+            status: 'Ativa',
+            operatorRole: selectedOperator?.role || 'Operador',
+            department: 'Produção'
+        };
+
+        database.ref(`personnel/warnings/${warnId}`).update(data).then(() => {
+            showToast('Advertência atualizada com sucesso!');
+            document.querySelectorAll('.modal-overlay').forEach(m => closeModal(m));
+        }).catch(error => {
+            showToast('Erro ao atualizar: ' + error.message, 'error');
+        });
+    });
+}
+
+// ============================================
+// FÉRIAS (VACATIONS)
+// ============================================
+
+function renderVacationsTab() {
+    const container = document.getElementById('vacations-container');
+    if (!container) return;
+
+    const vacations = filterDataByShift(personnelData.vacations, filteredShift);
+
+    if (vacations.length === 0) {
+        container.innerHTML = '<div class="col-span-full text-center py-12"><div class="inline-block p-4 bg-purple-100 rounded-full mb-3"><i class="fas fa-sun text-2xl text-purple-500"></i></div><p class="text-gray-500 font-medium">Nenhuma férias registrada</p></div>';
+        return;
+    }
+
+    container.innerHTML = vacations.map(vac => `
+        <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200 p-5 hover:shadow-xl transition-all duration-300 vacation-card group">
+            <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center gap-3 flex-1 min-w-0">
+                    <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform"><i class="fas fa-sun text-white text-lg"></i></div>
+                    <div class="min-w-0 flex-1">
+                        <p class="font-bold text-gray-800 text-sm truncate">${vac.operatorName || '-'}</p>
+                        <p class="text-xs text-gray-600 font-medium"><i class="fas fa-users text-gray-500 mr-1"></i>Turno ${vac.shift || '-'}</p>
+                    </div>
+                </div>
+                <span class="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded-full flex-shrink-0 ml-2 whitespace-nowrap">${vac.status || 'Pendente'}</span>
+            </div>
+            <div class="space-y-2 mb-4 pb-4 border-b-2 border-purple-200">
+                <div class="flex justify-between text-xs"><span class="text-gray-600 font-medium"><i class="far fa-calendar-check text-gray-500 mr-1"></i>Início:</span><span class="font-bold text-gray-800">${vac.startDate || '-'}</span></div>
+                <div class="flex justify-between text-xs"><span class="text-gray-600 font-medium"><i class="far fa-calendar-xmark text-gray-500 mr-1"></i>Fim:</span><span class="font-bold text-gray-800">${vac.endDate || '-'}</span></div>
+                <div class="flex justify-between text-xs"><span class="text-gray-600 font-medium"><i class="fas fa-calendar-days text-gray-500 mr-1"></i>Dias:</span><span class="font-bold text-purple-600">${vac.days || 0}</span></div>
+            </div>
+            <button class="w-full py-2 text-purple-600 hover:bg-purple-100 rounded-lg font-bold text-sm transition-all vacation-expand-btn" data-vac-id="${vac.id}">
+                <i class="fas fa-chevron-down"></i> Detalhes
+            </button>
+            <div class="hidden mt-3 pt-3 border-t-2 border-purple-200 vacation-expanded-content" data-vac-id="${vac.id}">
+                <div class="grid grid-cols-2 gap-3 text-sm mb-4 bg-white p-3 rounded-lg">
+                    <div><span class="text-gray-600 text-xs font-bold"><i class="fas fa-user mr-1"></i>Nome:</span><br><span class="font-bold truncate text-gray-800">${vac.operatorName}</span></div>
+                    <div><span class="text-gray-600 text-xs font-bold"><i class="fas fa-check-square mr-1"></i>Status:</span><br><span class="font-bold text-purple-600">${vac.status}</span></div>
+                    <div><span class="text-gray-600 text-xs font-bold"><i class="far fa-calendar-check mr-1"></i>Início:</span><br><span class="font-bold text-gray-800">${vac.startDate}</span></div>
+                    <div><span class="text-gray-600 text-xs font-bold"><i class="far fa-calendar-xmark mr-1"></i>Fim:</span><br><span class="font-bold text-gray-800">${vac.endDate}</span></div>
+                </div>
+                <div class="mb-4 bg-white p-3 rounded-lg"><span class="text-gray-600 text-xs font-bold"><i class="fas fa-comment mr-1"></i>Observação:</span><br><p class="text-sm mt-1 text-gray-700">${vac.observation || 'Sem observações'}</p></div>
+                <div class="flex gap-2">
+                    <button class="flex-1 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 text-sm font-bold vacation-delete-btn transition-all" data-vac-id="${vac.id}"><i class="fas fa-trash mr-1"></i>Excluir</button>
+                    <button class="flex-1 px-3 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 text-sm font-bold vacation-edit-btn transition-all" data-vac-id="${vac.id}"><i class="fas fa-edit mr-1"></i>Editar</button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+
+    setupVacationEventListeners();
+}
+
+function setupVacationEventListeners() {
+    document.querySelectorAll('.vacation-expand-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const vacId = btn.dataset.vacId;
+            const expandedContent = document.querySelector(`.vacation-expanded-content[data-vac-id="${vacId}"]`);
+            expandedContent.classList.toggle('hidden');
+            btn.querySelector('i').classList.toggle('fa-chevron-down');
+            btn.querySelector('i').classList.toggle('fa-chevron-up');
+        });
+    });
+
+    document.querySelectorAll('.vacation-delete-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const vacId = btn.dataset.vacId;
+            showDeleteConfirmation('férias', () => {
+                database.ref(`personnel/vacations/${vacId}`).remove();
+                showToast('Férias excluída com sucesso!');
+            });
+        });
+    });
+
+    document.querySelectorAll('.vacation-edit-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const vacId = btn.dataset.vacId;
+            showVacationEditModal(Object.values(personnelData.vacations).find(v => Object.keys(personnelData.vacations).find(k => k === vacId)), vacId);
+        });
+    });
+}
+
+function showVacationEditModal(vac, vacId) {
+    const userShift = currentUser?.shift;
+    const operatorOptions = getOperatorsByShift(vac?.shift || userShift).map(op =>
+        `<option value="${op.id}" ${vac?.operatorId === op.id ? 'selected' : ''}>${op.name}</option>`
+    ).join('');
+
+    const content = `
+        <form class="space-y-4" id="vac-edit-form">
+            <div>
+                <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-user mr-2 text-cyan-600"></i>Operador</label>
+                <select id="vac-op-id" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium" required>
+                    <option value="">Selecione...</option>
+                    ${operatorOptions}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-800 mb-2"><i class="far fa-calendar-check mr-2 text-cyan-600"></i>Data Inicial</label>
+                <input type="date" value="${vac?.startDate || ''}" id="vac-start-date" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium" required>
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-800 mb-2"><i class="far fa-calendar-xmark mr-2 text-cyan-600"></i>Data Final</label>
+                <input type="date" value="${vac?.endDate || ''}" id="vac-end-date" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium" required>
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-calendar-days mr-2 text-cyan-600"></i>Dias</label>
+                <input type="number" value="${vac?.days || 15}" id="vac-days" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium" required min="1">
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-check-circle mr-2 text-cyan-600"></i>Status</label>
+                <select id="vac-status" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium">
+                    <option value="Pendente" ${vac?.status === 'Pendente' ? 'selected' : ''}>Pendente</option>
+                    <option value="Aprovado" ${vac?.status === 'Aprovado' ? 'selected' : ''}>Aprovado</option>
+                    <option value="Concluído" ${vac?.status === 'Concluído' ? 'selected' : ''}>Concluído</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-comment mr-2 text-cyan-600"></i>Observação</label>
+                <textarea id="vac-obs" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium">${vac?.observation || ''}</textarea>
+            </div>
+            <button type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-3 rounded-lg font-bold hover:shadow-lg transition-all"><i class="fas fa-check mr-2"></i>Salvar</button>
+        </form>
+    `;
+    const modal = showModal(content, { title: '<i class="fas fa-edit mr-2"></i>Editar Férias' });
+
+    document.getElementById('vac-edit-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const operatorId = document.getElementById('vac-op-id').value;
+        const selectedOperator = operators[operatorId];
+
+        const data = {
+            operatorId: operatorId,
+            operatorName: selectedOperator?.name || '',
+            shift: selectedOperator?.shift || currentUser?.shift,
+            startDate: document.getElementById('vac-start-date').value,
+            endDate: document.getElementById('vac-end-date').value,
+            days: parseInt(document.getElementById('vac-days').value),
+            status: document.getElementById('vac-status').value,
+            observation: document.getElementById('vac-obs').value,
+            operatorRole: selectedOperator?.role || 'Operador',
+            department: 'Produção'
+        };
+
+        database.ref(`personnel/vacations/${vacId}`).update(data).then(() => {
+            showToast('Férias atualizada com sucesso!');
+            document.querySelectorAll('.modal-overlay').forEach(m => closeModal(m));
+        }).catch(error => {
+            showToast('Erro ao atualizar: ' + error.message, 'error');
+        });
+    });
+}
+
+// ============================================
+// ADD BUTTONS FOR PERSONNEL
+// ============================================
+
+function setupPersonnelAddButtons() {
+    const addCertBtn = document.getElementById('add-certificate-btn');
+    const addAbsBtn = document.getElementById('add-absence-btn');
+    const addWarnBtn = document.getElementById('add-warning-btn');
+    const addVacBtn = document.getElementById('add-vacation-btn');
+    const closeMonthBtn = document.getElementById('close-month-btn');
+
+    if (addCertBtn) {
+        addCertBtn.addEventListener('click', () => {
+            const userShift = currentUser?.shift;
+            const operatorOptions = getOperatorsByShift(userShift).map(op =>
+                `<option value="${op.id}">${op.name}</option>`
+            ).join('');
+
+            const content = `
+                <form class="space-y-4" id="new-cert-form">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-user mr-2 text-cyan-600"></i>Operador</label>
+                        <select id="new-cert-op-id" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium" required>
+                            <option value="">Selecione...</option>
+                            ${operatorOptions}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-list mr-2 text-cyan-600"></i>Tipo</label>
+                        <select id="new-cert-type" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium" required>
+                            <option value="Médico">Médico</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                    </div>
+                    <div id="new-cert-outros-field" class="hidden">
+                        <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-pen-to-square mr-2 text-cyan-600"></i>Especifique o tipo</label>
+                        <input type="text" id="new-cert-outros-type" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium" placeholder="Ex: Psicólogo, Fisioterapeuta...">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-800 mb-2"><i class="far fa-calendar mr-2 text-cyan-600"></i>Data</label>
+                        <input type="date" id="new-cert-date" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-hourglass-half mr-2 text-cyan-600"></i>Dias</label>
+                        <input type="number" id="new-cert-days" value="1" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium" required min="1">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-comment mr-2 text-cyan-600"></i>Observação</label>
+                        <textarea id="new-cert-obs" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-3 rounded-lg font-bold hover:shadow-lg transition-all"><i class="fas fa-check mr-2"></i>Salvar</button>
+                </form>
+            `;
+            const modal = showModal(content, { title: '<i class="fas fa-plus mr-2"></i>Novo Atestado' });
+
+            const typeSelect = document.getElementById('new-cert-type');
+            const outrosField = document.getElementById('new-cert-outros-field');
+            typeSelect?.addEventListener('change', () => {
+                if (typeSelect.value === 'Outros') {
+                    outrosField.classList.remove('hidden');
+                } else {
+                    outrosField.classList.add('hidden');
+                }
+            });
+
+            document.getElementById('new-cert-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const operatorId = document.getElementById('new-cert-op-id').value;
+                const selectedOperator = operators[operatorId];
+
+                const data = {
+                    operatorId: operatorId,
+                    operatorName: selectedOperator?.name || '',
+                    shift: selectedOperator?.shift || currentUser?.shift,
+                    type: document.getElementById('new-cert-type').value,
+                    outrosType: document.getElementById('new-cert-type').value === 'Outros' ? document.getElementById('new-cert-outros-type').value : null,
+                    date: document.getElementById('new-cert-date').value,
+                    days: parseInt(document.getElementById('new-cert-days').value),
+                    observation: document.getElementById('new-cert-obs').value,
+                    status: 'Aprovado',
+                    operatorRole: selectedOperator?.role || 'Operador',
+                    department: 'Produção'
+                };
+                database.ref('personnel/certificates').push(data).then(() => {
+                    showToast('Atestado criado com sucesso!');
+                    document.querySelectorAll('.modal-overlay').forEach(m => closeModal(m));
+                }).catch(error => {
+                    showToast('Erro ao criar: ' + error.message, 'error');
+                });
+            });
+        });
+    }
+
+    if (addAbsBtn) {
+        addAbsBtn.addEventListener('click', () => {
+            const userShift = currentUser?.shift;
+            const operatorOptions = getOperatorsByShift(userShift).map(op =>
+                `<option value="${op.id}">${op.name}</option>`
+            ).join('');
+
+            const content = `
+                <form class="space-y-4" id="new-abs-form">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-user mr-2 text-cyan-600"></i>Operador</label>
+                        <select id="new-abs-op-id" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium" required>
+                            <option value="">Selecione...</option>
+                            ${operatorOptions}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-800 mb-2"><i class="far fa-calendar mr-2 text-cyan-600"></i>Data</label>
+                        <input type="date" id="new-abs-date" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-list mr-2 text-cyan-600"></i>Tipo</label>
+                        <select id="new-abs-type" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium">
+                            <option>Justificada</option>
+                            <option>Injustificada</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-3 rounded-lg font-bold hover:shadow-lg transition-all"><i class="fas fa-check mr-2"></i>Registrar</button>
+                </form>
+            `;
+            const modal = showModal(content, { title: '<i class="fas fa-plus mr-2"></i>Registrar Falta' });
+
+            document.getElementById('new-abs-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const operatorId = document.getElementById('new-abs-op-id').value;
+                const selectedOperator = operators[operatorId];
+
+                const data = {
+                    operatorId: operatorId,
+                    operatorName: selectedOperator?.name || '',
+                    date: document.getElementById('new-abs-date').value,
+                    type: document.getElementById('new-abs-type').value,
+                    shift: selectedOperator?.shift || currentUser?.shift,
+                    totalAbsences: 1,
+                    monthTotal: 1,
+                    operatorRole: selectedOperator?.role || 'Operador',
+                    department: 'Produção'
+                };
+                database.ref('personnel/absences').push(data).then(() => {
+                    showToast('Falta registrada com sucesso!');
+                    document.querySelectorAll('.modal-overlay').forEach(m => closeModal(m));
+                }).catch(error => {
+                    showToast('Erro ao registrar: ' + error.message, 'error');
+                });
+            });
+        });
+    }
+
+    if (addWarnBtn) {
+        addWarnBtn.addEventListener('click', () => {
+            const userShift = currentUser?.shift;
+            const operatorOptions = getOperatorsByShift(userShift).map(op =>
+                `<option value="${op.id}">${op.name}</option>`
+            ).join('');
+
+            const content = `
+                <form class="space-y-4" id="new-warn-form">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-user mr-2 text-cyan-600"></i>Operador</label>
+                        <select id="new-warn-op-id" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium" required>
+                            <option value="">Selecione...</option>
+                            ${operatorOptions}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-exclamation-triangle mr-2 text-cyan-600"></i>Nível</label>
+                        <select id="new-warn-level" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium">
+                            <option>Nível 1</option>
+                            <option>Nível 2</option>
+                            <option>Nível 3</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-question-circle mr-2 text-cyan-600"></i>Motivo</label>
+                        <input type="text" id="new-warn-reason" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-800 mb-2"><i class="far fa-calendar mr-2 text-cyan-600"></i>Data</label>
+                        <input type="date" id="new-warn-date" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-pen-to-square mr-2 text-cyan-600"></i>Descrição</label>
+                        <textarea id="new-warn-description" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-3 rounded-lg font-bold hover:shadow-lg transition-all"><i class="fas fa-check mr-2"></i>Criar</button>
+                </form>
+            `;
+            const modal = showModal(content, { title: '<i class="fas fa-plus mr-2"></i>Nova Advertência' });
+
+            document.getElementById('new-warn-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const operatorId = document.getElementById('new-warn-op-id').value;
+                const selectedOperator = operators[operatorId];
+
+                const data = {
+                    operatorId: operatorId,
+                    operatorName: selectedOperator?.name || '',
+                    shift: selectedOperator?.shift || currentUser?.shift,
+                    level: document.getElementById('new-warn-level').value,
+                    reason: document.getElementById('new-warn-reason').value,
+                    date: document.getElementById('new-warn-date').value,
+                    description: document.getElementById('new-warn-description').value,
+                    status: 'Ativa',
+                    operatorRole: selectedOperator?.role || 'Operador',
+                    department: 'Produção'
+                };
+                database.ref('personnel/warnings').push(data).then(() => {
+                    showToast('Advertência criada com sucesso!');
+                    document.querySelectorAll('.modal-overlay').forEach(m => closeModal(m));
+                }).catch(error => {
+                    showToast('Erro ao criar: ' + error.message, 'error');
+                });
+            });
+        });
+    }
+
+    if (addVacBtn) {
+        addVacBtn.addEventListener('click', () => {
+            const userShift = currentUser?.shift;
+            const operatorOptions = getOperatorsByShift(userShift).map(op =>
+                `<option value="${op.id}">${op.name}</option>`
+            ).join('');
+
+            const content = `
+                <form class="space-y-4" id="new-vac-form">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-user mr-2 text-cyan-600"></i>Operador</label>
+                        <select id="new-vac-op-id" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium" required>
+                            <option value="">Selecione...</option>
+                            ${operatorOptions}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-800 mb-2"><i class="far fa-calendar-check mr-2 text-cyan-600"></i>Data Inicial</label>
+                        <input type="date" id="new-vac-start-date" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-800 mb-2"><i class="far fa-calendar-xmark mr-2 text-cyan-600"></i>Data Final</label>
+                        <input type="date" id="new-vac-end-date" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-calendar-days mr-2 text-cyan-600"></i>Dias</label>
+                        <input type="number" id="new-vac-days" value="15" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium" required min="1">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-comment mr-2 text-cyan-600"></i>Observação</label>
+                        <textarea id="new-vac-obs" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-3 rounded-lg font-bold hover:shadow-lg transition-all"><i class="fas fa-check mr-2"></i>Solicitar</button>
+                </form>
+            `;
+            const modal = showModal(content, { title: '<i class="fas fa-sun mr-2"></i>Nova Férias' });
+
+            document.getElementById('new-vac-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const operatorId = document.getElementById('new-vac-op-id').value;
+                const selectedOperator = operators[operatorId];
+
+                const data = {
+                    operatorId: operatorId,
+                    operatorName: selectedOperator?.name || '',
+                    shift: selectedOperator?.shift || currentUser?.shift,
+                    startDate: document.getElementById('new-vac-start-date').value,
+                    endDate: document.getElementById('new-vac-end-date').value,
+                    days: parseInt(document.getElementById('new-vac-days').value),
+                    status: 'Pendente',
+                    observation: document.getElementById('new-vac-obs').value,
+                    operatorRole: selectedOperator?.role || 'Operador',
+                    department: 'Produção'
+                };
+                database.ref('personnel/vacations').push(data).then(() => {
+                    showToast('Férias solicitada com sucesso!');
+                    document.querySelectorAll('.modal-overlay').forEach(m => closeModal(m));
+                }).catch(error => {
+                    showToast('Erro ao solicitar: ' + error.message, 'error');
+                });
+            });
+        });
+    }
+
+    if (closeMonthBtn) {
+        closeMonthBtn.addEventListener('click', () => {
+            const content = `
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-lock text-yellow-600 text-2xl"></i>
+                    </div>
+                    <p class="text-gray-700 font-bold mb-2 text-lg">Finalizar mês de Pessoal?</p>
+                    <p class="text-gray-500 text-sm mb-6">Todos os registros (Atestados, Faltas, Advertências e Férias) serão zerados.</p>
+                    <div class="flex gap-3">
+                        <button id="cancel-close" class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-all font-bold">Cancelar</button>
+                        <button id="confirm-close" class="flex-1 px-4 py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 text-white rounded-lg hover:shadow-lg transition-all font-bold"><i class="fas fa-lock mr-2"></i>Finalizar</button>
+                    </div>
+                </div>
+            `;
+            const modal = showModal(content, { title: '<i class="fas fa-lock mr-2"></i>Finalizar Mês' });
+
+            document.getElementById('cancel-close').onclick = () => closeModal(modal);
+            document.getElementById('confirm-close').onclick = () => {
+                database.ref('personnel/certificates').remove();
+                database.ref('personnel/absences').remove();
+                database.ref('personnel/warnings').remove();
+                database.ref('personnel/vacations').remove();
+
+                closeModal(modal);
+                showToast('Pessoal do mês zerado com sucesso!', 'success');
+                updatePersonnelView();
+            };
+        });
+    }
+}
+
+// ============================================
+// PERSONNEL TAB NAVIGATION
+// ============================================
+
+function setupPersonnelTabNavigation() {
+    document.querySelectorAll('.personnel-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const targetTab = btn.dataset.personnelTab;
+
+            document.querySelectorAll('.personnel-tab-btn').forEach(b => {
+                b.classList.remove('tab-active', 'primary-gradient', 'text-white', 'shadow-lg');
+                b.classList.add('text-gray-600', 'bg-white', 'card-shadow', 'hover:bg-gray-50', 'border-2', 'border-gray-200');
+            });
+
+            btn.classList.add('tab-active', 'primary-gradient', 'text-white', 'shadow-lg');
+            btn.classList.remove('text-gray-600', 'bg-white', 'card-shadow', 'hover:bg-gray-50', 'border-2', 'border-gray-200');
+
+            document.querySelectorAll('.personnel-tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+
+            document.querySelector(`.personnel-tab-content[data-personnel-tab="${targetTab}"]`)?.classList.remove('hidden');
+        });
+    });
+}
+
+// ============================================
+// HELPER FUNCTION FOR CONFIRMATION
+// ============================================
+
+function showDeleteConfirmation(itemType, onConfirm) {
+    const content = `
+        <div class="text-center">
+            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
+            </div>
+            <p class="text-gray-700 font-bold mb-2 text-lg">Confirmar exclusão?</p>
+            <p class="text-gray-500 text-sm mb-6">Tem certeza que deseja excluir este ${itemType}?</p>
+            <div class="flex gap-3">
+                <button id="cancel-delete" class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-all font-bold">Cancelar</button>
+                <button id="confirm-delete" class="flex-1 px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:shadow-lg transition-all font-bold"><i class="fas fa-trash mr-2"></i>Excluir</button>
+            </div>
+        </div>
+    `;
+
+    const modal = showModal(content, { title: '<i class="fas fa-exclamation-circle mr-2"></i>Confirmar Exclusão' });
+
+    document.getElementById('cancel-delete').onclick = () => closeModal(modal);
+    document.getElementById('confirm-delete').onclick = () => {
+        onConfirm();
+        closeModal(modal);
+    };
+}
+
+// ============================================
+// INITIALIZE PERSONNEL TAB
+// ============================================
+
+function initializePersonnelTab() {
+    setupPersonnelTabNavigation();
+    setupPersonnelAddButtons();
+    setupPersonnelListeners();
+    updatePersonnelView();
+}
+
+
+
 
 
 
 async function closeMonth() {
     const monthKeyEl = document.getElementById('closing-month');
     if (!monthKeyEl) return;
-    
+
     const monthKey = monthKeyEl.value;
     if (!monthKey) {
         showToast('Selecione um mês', 'warning');
@@ -3391,7 +4482,7 @@ async function closeMonth() {
 
     try {
         const ref = database.ref(`closings/${monthKey}`);
-        
+
         // ✅ Busca dados atualizados antes de fechar
         const snapshot = await ref.once('value');
         const data = snapshot.val();
@@ -3413,10 +4504,10 @@ async function closeMonth() {
         });
 
         showToast('Mês fechado com sucesso!', 'success');
-        
+
         // ✅ Atualiza a view completamente
         await updateClosingView();
-        
+
     } catch (error) {
         console.error('Erro ao fechar mês:', error);
         showToast('Erro ao fechar mês', 'error');
@@ -3426,7 +4517,7 @@ async function closeMonth() {
 async function openMonth() {
     const monthKeyEl = document.getElementById('closing-month');
     if (!monthKeyEl) return;
-    
+
     const monthKey = monthKeyEl.value;
     if (!monthKey) {
         showToast('Selecione um mês', 'warning');
@@ -3441,7 +4532,7 @@ async function openMonth() {
 
     try {
         const ref = database.ref(`closings/${monthKey}`);
-        
+
         // ✅ Busca dados antes de abrir
         const snapshot = await ref.once('value');
         const data = snapshot.val();
@@ -3468,10 +4559,10 @@ async function openMonth() {
         });
 
         showToast('Mês reaberto!', 'success');
-        
+
         // ✅ Atualiza a view completamente
         await updateClosingView();
-        
+
     } catch (error) {
         console.error('Erro ao reabrir mês:', error);
         showToast('Erro ao reabrir mês', 'error');
@@ -3520,6 +4611,7 @@ async function updateMonthButtons(monthKey) {
         console.error('Erro ao atualizar botões:', error);
     }
 }
+
 document.getElementById('closing-month').addEventListener('change', e => {
     updateMonthButtons(e.target.value);
 });
@@ -3528,23 +4620,23 @@ document.getElementById('close-month-btn').addEventListener('click', closeMonth)
 document.getElementById('open-month-btn').addEventListener('click', openMonth);
 async function downloadClosingReport(monthKey) {
     const { jsPDF } = window.jspdf;
-  
+
     // ✅ ADAPTADO: Filtro usando isDateInCustomMonth com currentMonth
     let filtered = getFilteredProductions()
         .filter(p => isDateInCustomMonth(p.date, currentMonth));
-    
+
     // ✅ ORDENAR: MÁQUINA → DATA (consistente com exportToPDF)
     filtered.sort((a, b) => {
         const machineA = machines[a.machineId];
         const machineB = machines[b.machineId];
-        
+
         if (!machineA || !machineB || !machineA.name || !machineB.name) return 0;
-        
+
         const ma = parseInt(machineA.name.replace(/\D/g, '')) || 0;
         const mb = parseInt(machineB.name.replace(/\D/g, '')) || 0;
-        
+
         if (ma !== mb) return ma - mb;
-        
+
         const dateA = new Date(a.date);
         const dateB = new Date(b.date);
         return dateA.getTime() - dateB.getTime();
@@ -3554,7 +4646,7 @@ async function downloadClosingReport(monthKey) {
     pdfContainer.style.cssText = 'position:absolute;left:-9999px;top:0;background:white;font-family:Inter,sans-serif;';
 
     const totalQuantity = filtered.reduce((sum, p) => sum + (p.quantity || 0), 0);
-    
+
     // ✅ CORRIGIDO: Calcular downtime em horas e minutos corretamente
     let totalDowntimeHours = filtered.reduce((sum, p) => sum + (p.downtimeHours || 0), 0);
     let totalDowntimeMinutes = filtered.reduce((sum, p) => sum + (p.downtimeMinutes || 0), 0);
@@ -3562,7 +4654,7 @@ async function downloadClosingReport(monthKey) {
     totalDowntimeMinutes = totalDowntimeMinutes % 60;
     const totalDowntime = `${totalDowntimeHours}h ${totalDowntimeMinutes}m`;
     const totalDowntimeNumeric = totalDowntimeHours + (totalDowntimeMinutes / 60); // Para cálculos
-    
+
     const uniqueDays = [...new Set(filtered.map(p => p.date))].length;
     const avgPerDay = uniqueDays > 0 ? Math.round(totalQuantity / uniqueDays) : 0;
 
@@ -3579,7 +4671,7 @@ async function downloadClosingReport(monthKey) {
         statsByShift[shift].downtimeMinutes += p.downtimeMinutes || 0;
         statsByShift[shift].count++;
     });
-    
+
     // ✅ Normalizar minutos para horas em statsByShift
     Object.values(statsByShift).forEach(shift => {
         shift.downtimeHours += Math.floor(shift.downtimeMinutes / 60);
@@ -3598,7 +4690,7 @@ async function downloadClosingReport(monthKey) {
         statsByMachine[p.machineId].downtimeMinutes += p.downtimeMinutes || 0;
         statsByMachine[p.machineId].count++;
     });
-    
+
     // ✅ Normalizar minutos para horas em statsByMachine
     Object.values(statsByMachine).forEach(machine => {
         machine.downtimeHours += Math.floor(machine.downtimeMinutes / 60);
@@ -4225,11 +5317,11 @@ async function downloadClosingReport(monthKey) {
             
             <div class="machine-list">
               ${Object.values(statsByMachine).sort((a, b) => {
-                // Ordenar máquinas numericamente
-                const ma = parseInt(a.name.replace(/\D/g, '')) || 0;
-                const mb = parseInt(b.name.replace(/\D/g, '')) || 0;
-                return ma - mb;
-              }).map(machine => {
+            // Ordenar máquinas numericamente
+            const ma = parseInt(a.name.replace(/\D/g, '')) || 0;
+            const mb = parseInt(b.name.replace(/\D/g, '')) || 0;
+            return ma - mb;
+        }).map(machine => {
             const machineAvg = machine.count > 0 ? Math.round(machine.quantity / machine.count) : 0;
             return `
                 <div class="machine-item">
