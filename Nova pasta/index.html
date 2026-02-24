@@ -1241,78 +1241,82 @@
             }
         }
 
-        function setupEventListeners() {
-            // Login
-            document.getElementById('login-form').addEventListener('submit', handleLogin);
+   function setupEventListeners() {
 
-            // Logout
-            document.getElementById('logout-btn').addEventListener('click', handleLogout);
+    const addListener = (id, event, handler) => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener(event, handler);
+    };
 
-            // Tab navigation
-            document.querySelectorAll('.tab-btn, .mobile-tab-btn').forEach(btn => {
-                btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-            });
+    // Login
+    addListener('login-form', 'submit', handleLogin);
 
-            // Mobile more menu
-            const mobileMoreBtn = document.getElementById('mobile-more-btn');
-            const mobileMoreMenu = document.getElementById('mobile-more-menu');
+    // Logout
+    addListener('logout-btn', 'click', handleLogout);
 
-            mobileMoreBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                mobileMoreMenu.classList.toggle('active');
-            });
+    // Tab navigation
+    document.querySelectorAll('.tab-btn, .mobile-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
 
-            document.querySelectorAll('.mobile-more-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    switchTab(item.dataset.tab);
-                    mobileMoreMenu.classList.remove('active');
-                });
-            });
+    // Mobile more menu
+    const mobileMoreBtn = document.getElementById('mobile-more-btn');
+    const mobileMoreMenu = document.getElementById('mobile-more-menu');
 
-            document.addEventListener('click', () => {
+    if (mobileMoreBtn && mobileMoreMenu) {
+        mobileMoreBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            mobileMoreMenu.classList.toggle('active');
+        });
+
+        document.addEventListener('click', () => {
+            mobileMoreMenu.classList.remove('active');
+        });
+
+        document.querySelectorAll('.mobile-more-item').forEach(item => {
+            item.addEventListener('click', () => {
+                switchTab(item.dataset.tab);
                 mobileMoreMenu.classList.remove('active');
             });
+        });
+    }
 
-            // Machine tabs
-            document.querySelectorAll('.machine-tab').forEach(btn => {
-                btn.addEventListener('click', () => switchMachine(btn.dataset.machine));
-            });
+    // Machine tabs
+    document.querySelectorAll('.machine-tab').forEach(btn => {
+        btn.addEventListener('click', () => switchMachine(btn.dataset.machine));
+    });
 
-            // View toggle buttons
-            document.getElementById('calendar-view-btn').addEventListener('click', () => toggleProductionView('calendar'));
-            document.getElementById('table-view-btn').addEventListener('click', () => toggleProductionView('table'));
+    // View toggle
+    addListener('calendar-view-btn', 'click', () => toggleProductionView('calendar'));
+    addListener('table-view-btn', 'click', () => toggleProductionView('table'));
 
-            // Month navigation
-            document.getElementById('prev-month-dash').addEventListener('click', () => navigateMonth(-1));
-            document.getElementById('next-month-dash').addEventListener('click', () => navigateMonth(1));
-            document.getElementById('prev-month-prod').addEventListener('click', () => navigateMonth(-1));
-            document.getElementById('next-month-prod').addEventListener('click', () => navigateMonth(1));
+    // Month navigation
+    addListener('prev-month-dash', 'click', () => navigateMonth(-1));
+    addListener('next-month-dash', 'click', () => navigateMonth(1));
+    addListener('prev-month-prod', 'click', () => navigateMonth(-1));
+    addListener('next-month-prod', 'click', () => navigateMonth(1));
 
-            // Settings
-            document.getElementById('add-user-btn').addEventListener('click', () => showUserModal());
-            document.getElementById('add-operator-btn').addEventListener('click', () => showOperatorModal());
-            document.getElementById('add-my-operator-btn').addEventListener('click', () => showMyOperatorModal());
-            document.getElementById('add-machine-btn').addEventListener('click', () => showMachineModal());
-            document.getElementById('save-limits-btn').addEventListener('click', saveLimits);
+    // Settings
+    addListener('add-user-btn', 'click', showUserModal);
+    addListener('add-operator-btn', 'click', showOperatorModal);
+    addListener('add-my-operator-btn', 'click', showMyOperatorModal);
+    addListener('add-machine-btn', 'click', showMachineModal);
+    addListener('save-limits-btn', 'click', saveLimits);
 
-            // Reports
-            document.getElementById('generate-report').addEventListener('click', generateReport);
-            document.getElementById('export-pdf').addEventListener('click', exportToPDF);
-            document.getElementById('export-excel').addEventListener('click', exportToExcel);
-            document.getElementById('report-type').addEventListener('change', updateFilterVisibility);
+    // Reports
+    addListener('generate-report', 'click', generateReport);
+    addListener('export-pdf', 'click', exportToPDF);
+    addListener('export-excel', 'click', exportToExcel);
+    addListener('report-type', 'change', updateFilterVisibility);
 
-            // Closing
-            document.getElementById('close-month-btn').addEventListener('click', closeMonth);
+    // Closing
+    addListener('close-month-btn', 'click', closeMonth);
 
-            // Settings tab - atualizar card ao clicar
-            const settingsTabBtns = document.querySelectorAll('[data-tab="settings"]');
-            settingsTabBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    updateLastAccessCard();
-                });
-            });
-        }
-
+    // Settings tab
+    document.querySelectorAll('[data-tab="settings"]').forEach(btn => {
+        btn.addEventListener('click', updateLastAccessCard);
+    });
+}
      // Inicializar listener quando a página carregar
 document.addEventListener('DOMContentLoaded', function () {
     setupAccessLogsListener();
