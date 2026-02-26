@@ -3228,7 +3228,7 @@ async function saveLimits() {
                     
                     <div class="section-title">
                         <i class="fas fa-trophy"></i>
-                        Top 5 Operadores do Mês
+                        Top 3 Operadores do Mês
                     </div>
                     
                     <div class="top-operators">
@@ -3312,7 +3312,7 @@ async function saveLimits() {
                 const avgPerDay = uniqueOpDays > 0 ? Math.round(total / uniqueOpDays) : 0;
 
                 // ✅ PAGINAÇÃO INTELIGENTE: Dividir registros em grupos que cabem em uma página A4
-                const RECORDS_PER_PAGE = 25; // Quantidade segura de registros por página
+                const RECORDS_PER_PAGE = 32; // Quantidade segura de registros por página
                 const totalPages = Math.ceil(prods.length / RECORDS_PER_PAGE);
 
                 for (let pageNum = 0; pageNum < totalPages; pageNum++) {
@@ -6192,3 +6192,4 @@ function initializePersonnelTab() {
 </body>
 
 </html>
+
