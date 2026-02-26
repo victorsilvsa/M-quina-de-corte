@@ -81,9 +81,7 @@
                             id="personnel-tab"> <i class="fas fa-users mr-2"></i>A/F/A/F </button> <button
                             data-tab="reports"
                             class="tab-btn px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap text-gray-600 hover:bg-gray-100 transition-all">
-                            <i class="fas fa-file-alt mr-2"></i>Relatórios </button> <button data-tab="closing"
-                            class="tab-btn px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap text-gray-600 hover:bg-gray-100 transition-all hidden"
-                            id="closing-tab"> <i class="fas fa-lock mr-2"></i>Fechamento </button> <button
+                            <i class="fas fa-file-alt mr-2"></i>Relatórios </button> <button
                             data-tab="settings"
                             class="tab-btn px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap text-gray-600 hover:bg-gray-100 transition-all hidden"
                             id="settings-tab"> <i class="fas fa-cog mr-2"></i>Configurações </button>
@@ -535,9 +533,7 @@
                 <div class="mobile-more-item" data-tab="personnel" id="mobile-more-personnel">
                     <i class="fas fa-users"></i> <span class="font-medium text-gray-700">A/F/A/F</span>
                 </div>
-                <div class="mobile-more-item" data-tab="closing" id="mobile-more-closing">
-                    <i class="fas fa-lock"></i> <span class="font-medium text-gray-700">Fechamento</span>
-                </div>
+    
                 <div class="mobile-more-item" data-tab="settings" id="mobile-more-settings">
                     <i class="fas fa-cog"></i> <span class="font-medium text-gray-700">Configurações</span>
                 </div>
@@ -564,7 +560,7 @@
 
     <script>
 
-                     // Firebase Configuration
+        // Firebase Configuration
         // For Firebase JS SDK v7.20.0 and later, measurementId is optional
         // Firebase Configuration
         const firebaseConfig = {
@@ -801,9 +797,7 @@
             return 'production-medium';
         }
 
-        function isMonthClosed(monthKey) {
-            return Object.values(closings).some(c => c.month === monthKey);
-        }
+
 
         function getFilteredProductions() {
             // Verifica se productions existe e é um objeto válido
@@ -1241,228 +1235,240 @@
             }
         }
 
-   function setupEventListeners() {
+        function setupEventListeners() {
 
-    const addListener = (id, event, handler) => {
-        const el = document.getElementById(id);
-        if (el) el.addEventListener(event, handler);
-    };
+            const addListener = (id, event, handler) => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener(event, handler);
+            };
 
-    // Login
-    addListener('login-form', 'submit', handleLogin);
+            // Login
+            addListener('login-form', 'submit', handleLogin);
 
-    // Logout
-    addListener('logout-btn', 'click', handleLogout);
+            // Logout
+            addListener('logout-btn', 'click', handleLogout);
 
-    // Tab navigation
-    document.querySelectorAll('.tab-btn, .mobile-tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-    });
-
-    // Mobile more menu
-    const mobileMoreBtn = document.getElementById('mobile-more-btn');
-    const mobileMoreMenu = document.getElementById('mobile-more-menu');
-
-    if (mobileMoreBtn && mobileMoreMenu) {
-        mobileMoreBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            mobileMoreMenu.classList.toggle('active');
-        });
-
-        document.addEventListener('click', () => {
-            mobileMoreMenu.classList.remove('active');
-        });
-
-        document.querySelectorAll('.mobile-more-item').forEach(item => {
-            item.addEventListener('click', () => {
-                switchTab(item.dataset.tab);
-                mobileMoreMenu.classList.remove('active');
+            // Tab navigation
+            document.querySelectorAll('.tab-btn, .mobile-tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => switchTab(btn.dataset.tab));
             });
+
+            // Mobile more menu
+            const mobileMoreBtn = document.getElementById('mobile-more-btn');
+            const mobileMoreMenu = document.getElementById('mobile-more-menu');
+
+            if (mobileMoreBtn && mobileMoreMenu) {
+                mobileMoreBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    mobileMoreMenu.classList.toggle('active');
+                });
+
+                document.addEventListener('click', () => {
+                    mobileMoreMenu.classList.remove('active');
+                });
+
+                document.querySelectorAll('.mobile-more-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        switchTab(item.dataset.tab);
+                        mobileMoreMenu.classList.remove('active');
+                    });
+                });
+            }
+
+            // Machine tabs
+            document.querySelectorAll('.machine-tab').forEach(btn => {
+                btn.addEventListener('click', () => switchMachine(btn.dataset.machine));
+            });
+
+            // View toggle
+            addListener('calendar-view-btn', 'click', () => toggleProductionView('calendar'));
+            addListener('table-view-btn', 'click', () => toggleProductionView('table'));
+
+            // Month navigation
+            addListener('prev-month-dash', 'click', () => navigateMonth(-1));
+            addListener('next-month-dash', 'click', () => navigateMonth(1));
+            addListener('prev-month-prod', 'click', () => navigateMonth(-1));
+            addListener('next-month-prod', 'click', () => navigateMonth(1));
+
+            // Settings
+            addListener('add-user-btn', 'click', showUserModal);
+            addListener('add-operator-btn', 'click', showOperatorModal);
+            addListener('add-my-operator-btn', 'click', showMyOperatorModal);
+            addListener('add-machine-btn', 'click', showMachineModal);
+            addListener('save-limits-btn', 'click', saveLimits);
+
+            // Reports
+            addListener('generate-report', 'click', generateReport);
+            addListener('export-pdf', 'click', exportToPDF);
+            addListener('export-excel', 'click', exportToExcel);
+            addListener('report-type', 'change', updateFilterVisibility);
+
+            // Closing
+            addListener('close-month-btn', 'click', closeMonth);
+
+            // Settings tab
+            document.querySelectorAll('[data-tab="settings"]').forEach(btn => {
+                btn.addEventListener('click', updateLastAccessCard);
+            });
+        }
+        // Inicializar listener quando a página carregar
+        document.addEventListener('DOMContentLoaded', function () {
+            setupAccessLogsListener();
+            updateLastAccessCard();
         });
-    }
 
-    // Machine tabs
-    document.querySelectorAll('.machine-tab').forEach(btn => {
-        btn.addEventListener('click', () => switchMachine(btn.dataset.machine));
-    });
+        function showMainApp() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
 
-    // View toggle
-    addListener('calendar-view-btn', 'click', () => toggleProductionView('calendar'));
-    addListener('table-view-btn', 'click', () => toggleProductionView('table'));
+            const roleNames = { admin: 'Administrador', leader: 'Líder de Turno', operator: 'Operador' };
+            let userInfo = `${currentUser.name} - ${roleNames[currentUser.role]}`;
+            if (currentUser.shift) userInfo += ` (Turno ${currentUser.shift})`;
+            document.getElementById('user-info').textContent = userInfo;
 
-    // Month navigation
-    addListener('prev-month-dash', 'click', () => navigateMonth(-1));
-    addListener('next-month-dash', 'click', () => navigateMonth(1));
-    addListener('prev-month-prod', 'click', () => navigateMonth(-1));
-    addListener('next-month-prod', 'click', () => navigateMonth(1));
+            const isAdminOrLeader = ['admin', 'leader'].includes(currentUser.role);
+            const isAdmin = currentUser.role === 'admin';
 
-    // Settings
-    addListener('add-user-btn', 'click', showUserModal);
-    addListener('add-operator-btn', 'click', showOperatorModal);
-    addListener('add-my-operator-btn', 'click', showMyOperatorModal);
-    addListener('add-machine-btn', 'click', showMachineModal);
-    addListener('save-limits-btn', 'click', saveLimits);
+            document.getElementById('operators-tab').classList.toggle('hidden', !isAdminOrLeader);
+            document.getElementById('closing-tab').classList.toggle('hidden', !isAdminOrLeader);
+            document.getElementById('settings-tab').classList.toggle('hidden', !isAdmin);
 
-    // Reports
-    addListener('generate-report', 'click', generateReport);
-    addListener('export-pdf', 'click', exportToPDF);
-    addListener('export-excel', 'click', exportToExcel);
-    addListener('report-type', 'change', updateFilterVisibility);
+            document.getElementById('mobile-more-operators').classList.toggle('hidden', !isAdminOrLeader);
+            document.getElementById('mobile-more-closing').classList.toggle('hidden', !isAdminOrLeader);
+            document.getElementById('mobile-more-settings').classList.toggle('hidden', !isAdmin);
 
-    // Closing
-    addListener('close-month-btn', 'click', closeMonth);
+            updateDashboard();
+            updateProductionView();
+            updateOperatorsView();
+            OperatorsManager.init();
+            updateSettingsView();
+            updateClosingView();
+            populateFilterSelects();
+            document.getElementById('personnel-tab').classList.toggle('hidden', !isAdminOrLeader);
+            document.getElementById('mobile-more-personnel').classList.toggle('hidden', !isAdminOrLeader);
 
-    // Settings tab
-    document.querySelectorAll('[data-tab="settings"]').forEach(btn => {
-        btn.addEventListener('click', updateLastAccessCard);
-    });
-}
-     // Inicializar listener quando a página carregar
-document.addEventListener('DOMContentLoaded', function () {
-    setupAccessLogsListener();
-    updateLastAccessCard();
-});
+            // Inicializa a aba de pessoal
+            initializePersonnelTab();
+        }
 
-function showMainApp() {
-    document.getElementById('login-screen').classList.add('hidden');
-    document.getElementById('main-app').classList.remove('hidden');
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('tab-active');
+                btn.classList.add('text-gray-600', 'hover:bg-gray-100');
+            });
+            document.querySelector(`.tab-btn[data-tab="${tabId}"]`)?.classList.add('tab-active');
+            document.querySelector(`.tab-btn[data-tab="${tabId}"]`)?.classList.remove('text-gray-600', 'hover:bg-gray-100');
 
-    const roleNames = { admin: 'Administrador', leader: 'Líder de Turno', operator: 'Operador' };
-    let userInfo = `${currentUser.name} - ${roleNames[currentUser.role]}`;
-    if (currentUser.shift) userInfo += ` (Turno ${currentUser.shift})`;
-    document.getElementById('user-info').textContent = userInfo;
+            document.querySelectorAll('.mobile-tab-btn').forEach(btn => {
+                btn.classList.remove('text-cyan-600');
+                btn.classList.add('text-gray-500');
+            });
+            document.querySelector(`.mobile-tab-btn[data-tab="${tabId}"]`)?.classList.add('text-cyan-600');
+            document.querySelector(`.mobile-tab-btn[data-tab="${tabId}"]`)?.classList.remove('text-gray-500');
 
-    const isAdminOrLeader = ['admin', 'leader'].includes(currentUser.role);
-    const isAdmin = currentUser.role === 'admin';
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
+            document.getElementById(`${tabId}-content`)?.classList.remove('hidden');
+        }
 
-    document.getElementById('operators-tab').classList.toggle('hidden', !isAdminOrLeader);
-    document.getElementById('closing-tab').classList.toggle('hidden', !isAdminOrLeader);
-    document.getElementById('settings-tab').classList.toggle('hidden', !isAdmin);
+        function switchMachine(machineNum) {
+            selectedMachine = machineNum;
 
-    document.getElementById('mobile-more-operators').classList.toggle('hidden', !isAdminOrLeader);
-    document.getElementById('mobile-more-closing').classList.toggle('hidden', !isAdminOrLeader);
-    document.getElementById('mobile-more-settings').classList.toggle('hidden', !isAdmin);
+            document.querySelectorAll('.machine-tab').forEach(btn => {
+                btn.classList.remove('tab-active');
+                btn.classList.add('text-gray-600', 'bg-white', 'card-shadow', 'hover:bg-gray-50');
+            });
 
-    updateDashboard();
-    updateProductionView();
-    updateOperatorsView();
-    OperatorsManager.init();
-    updateSettingsView();
-    updateClosingView();
-    populateFilterSelects();
-    document.getElementById('personnel-tab').classList.toggle('hidden', !isAdminOrLeader);
-    document.getElementById('mobile-more-personnel').classList.toggle('hidden', !isAdminOrLeader);
+            const activeTab = document.querySelector(`.machine-tab[data-machine="${machineNum}"]`);
+            activeTab.classList.add('tab-active');
+            activeTab.classList.remove('text-gray-600', 'bg-white', 'card-shadow', 'hover:bg-gray-50');
 
-    // Inicializa a aba de pessoal
-    initializePersonnelTab();
-}
+            updateProductionView();
+        }
 
-function switchTab(tabId) {
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('tab-active');
-        btn.classList.add('text-gray-600', 'hover:bg-gray-100');
-    });
-    document.querySelector(`.tab-btn[data-tab="${tabId}"]`)?.classList.add('tab-active');
-    document.querySelector(`.tab-btn[data-tab="${tabId}"]`)?.classList.remove('text-gray-600', 'hover:bg-gray-100');
+        function toggleProductionView(view) {
+            const calendarView = document.getElementById('calendar-view');
+            const tableView = document.getElementById('table-view');
+            const calendarBtn = document.getElementById('calendar-view-btn');
+            const tableBtn = document.getElementById('table-view-btn');
 
-    document.querySelectorAll('.mobile-tab-btn').forEach(btn => {
-        btn.classList.remove('text-cyan-600');
-        btn.classList.add('text-gray-500');
-    });
-    document.querySelector(`.mobile-tab-btn[data-tab="${tabId}"]`)?.classList.add('text-cyan-600');
-    document.querySelector(`.mobile-tab-btn[data-tab="${tabId}"]`)?.classList.remove('text-gray-500');
+            if (view === 'calendar') {
+                calendarView.classList.remove('hidden');
+                tableView.classList.add('hidden');
+                calendarBtn.classList.add('primary-gradient', 'text-white');
+                calendarBtn.classList.remove('text-gray-600', 'hover:bg-gray-100');
+                tableBtn.classList.remove('primary-gradient', 'text-white');
+                tableBtn.classList.add('text-gray-600', 'hover:bg-gray-100');
+            } else {
+                calendarView.classList.add('hidden');
+                tableView.classList.remove('hidden');
+                tableBtn.classList.add('primary-gradient', 'text-white');
+                tableBtn.classList.remove('text-gray-600', 'hover:bg-gray-100');
+                calendarBtn.classList.remove('primary-gradient', 'text-white');
+                calendarBtn.classList.add('text-gray-600', 'hover:bg-gray-100');
+            }
+        }
 
-    document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
-    document.getElementById(`${tabId}-content`)?.classList.remove('hidden');
-}
+        let isNavigatingMonth = false;
+        function navigateMonth(delta) {
 
-function switchMachine(machineNum) {
-    selectedMachine = machineNum;
+            if (isNavigatingMonth) {
+                return;
+            }
 
-    document.querySelectorAll('.machine-tab').forEach(btn => {
-        btn.classList.remove('tab-active');
-        btn.classList.add('text-gray-600', 'bg-white', 'card-shadow', 'hover:bg-gray-50');
-    });
+            isNavigatingMonth = true;
 
-    const activeTab = document.querySelector(`.machine-tab[data-machine="${machineNum}"]`);
-    activeTab.classList.add('tab-active');
-    activeTab.classList.remove('text-gray-600', 'bg-white', 'card-shadow', 'hover:bg-gray-50');
+            console.log("ANTES:", currentMonth);
 
-    updateProductionView();
-}
+            const year = currentMonth.getFullYear();
+            const month = currentMonth.getMonth();
 
-function toggleProductionView(view) {
-    const calendarView = document.getElementById('calendar-view');
-    const tableView = document.getElementById('table-view');
-    const calendarBtn = document.getElementById('calendar-view-btn');
-    const tableBtn = document.getElementById('table-view-btn');
+            currentMonth = new Date(year, month + delta, 1);
 
-    if (view === 'calendar') {
-        calendarView.classList.remove('hidden');
-        tableView.classList.add('hidden');
-        calendarBtn.classList.add('primary-gradient', 'text-white');
-        calendarBtn.classList.remove('text-gray-600', 'hover:bg-gray-100');
-        tableBtn.classList.remove('primary-gradient', 'text-white');
-        tableBtn.classList.add('text-gray-600', 'hover:bg-gray-100');
-    } else {
-        calendarView.classList.add('hidden');
-        tableView.classList.remove('hidden');
-        tableBtn.classList.add('primary-gradient', 'text-white');
-        tableBtn.classList.remove('text-gray-600', 'hover:bg-gray-100');
-        calendarBtn.classList.remove('primary-gradient', 'text-white');
-        calendarBtn.classList.add('text-gray-600', 'hover:bg-gray-100');
-    }
-}
 
-function navigateMonth(delta) {
-    // Get current custom month range
-    const { startDate } = getCustomMonthRange(currentMonth);
+            updateDashboard();
+            updateProductionView();
 
-    // Move by delta months from the start of the current custom month
-    const newDate = new Date(startDate);
-    newDate.setMonth(newDate.getMonth() + delta);
+            // libera depois de 100ms
+            setTimeout(() => {
+                isNavigatingMonth = false;
+            }, 100);
+        }
 
-    currentMonth = newDate;
+        // Dashboard
+        function updateDashboard() {
+            const monthKey = getMonthKey(currentMonth);
+            document.getElementById('current-month-dash').textContent = formatMonthYear(currentMonth);
+            document.getElementById('current-month-prod').textContent = formatMonthYear(currentMonth);
 
-    updateDashboard();
-    updateProductionView();
-}
+            // Filter by CUSTOM month
+            const filtered = getFilteredProductions().filter(p =>
+                isDateInCustomMonth(p.date, currentMonth)
+            );
 
-// Dashboard
-function updateDashboard() {
-    const monthKey = getMonthKey(currentMonth);
-    document.getElementById('current-month-dash').textContent = formatMonthYear(currentMonth);
-    document.getElementById('current-month-prod').textContent = formatMonthYear(currentMonth);
+            const totalQuantity = filtered.reduce((sum, p) => sum + (p.quantity || 0), 0);
 
-    // Filter by CUSTOM month
-    const filtered = getFilteredProductions().filter(p =>
-        isDateInCustomMonth(p.date, currentMonth)
-    );
+            // ✅ CORRIGIDO: Calcular downtime em horas e minutos
+            let totalDowntimeHours = filtered.reduce((sum, p) => sum + (p.downtimeHours || 0), 0);
+            let totalDowntimeMinutes = filtered.reduce((sum, p) => sum + (p.downtimeMinutes || 0), 0);
+            totalDowntimeHours += Math.floor(totalDowntimeMinutes / 60);
+            totalDowntimeMinutes = totalDowntimeMinutes % 60;
+            const totalDowntimeFormatted = `${totalDowntimeHours}h ${totalDowntimeMinutes}m`;
 
-    const totalQuantity = filtered.reduce((sum, p) => sum + (p.quantity || 0), 0);
+            const uniqueDays = [...new Set(filtered.map(p => p.date))].length;
+            const average = uniqueDays > 0 ? Math.round(totalQuantity / uniqueDays) : 0;
 
-    // ✅ CORRIGIDO: Calcular downtime em horas e minutos
-    let totalDowntimeHours = filtered.reduce((sum, p) => sum + (p.downtimeHours || 0), 0);
-    let totalDowntimeMinutes = filtered.reduce((sum, p) => sum + (p.downtimeMinutes || 0), 0);
-    totalDowntimeHours += Math.floor(totalDowntimeMinutes / 60);
-    totalDowntimeMinutes = totalDowntimeMinutes % 60;
-    const totalDowntimeFormatted = `${totalDowntimeHours}h ${totalDowntimeMinutes}m`;
+            document.getElementById('stat-total').textContent = totalQuantity.toLocaleString();
+            document.getElementById('stat-average').textContent = average.toLocaleString();
+            document.getElementById('stat-downtime').textContent = totalDowntimeFormatted;
+            document.getElementById('stat-days').textContent = uniqueDays;
 
-    const uniqueDays = [...new Set(filtered.map(p => p.date))].length;
-    const average = uniqueDays > 0 ? Math.round(totalQuantity / uniqueDays) : 0;
+            // Machine stats
+            const machineStatsHtml = Object.entries(machines).map(([id, machine]) => {
+                const machineProds = filtered.filter(p => p.machineId === id);
+                const machineTotal = machineProds.reduce((sum, p) => sum + (p.quantity || 0), 0);
+                const percentage = machine.target > 0 ? Math.min(100, (machineTotal / (machine.target * 30)) * 100) : 0;
 
-    document.getElementById('stat-total').textContent = totalQuantity.toLocaleString();
-    document.getElementById('stat-average').textContent = average.toLocaleString();
-    document.getElementById('stat-downtime').textContent = totalDowntimeFormatted;
-    document.getElementById('stat-days').textContent = uniqueDays;
-
-    // Machine stats
-    const machineStatsHtml = Object.entries(machines).map(([id, machine]) => {
-        const machineProds = filtered.filter(p => p.machineId === id);
-        const machineTotal = machineProds.reduce((sum, p) => sum + (p.quantity || 0), 0);
-        const percentage = machine.target > 0 ? Math.min(100, (machineTotal / (machine.target * 30)) * 100) : 0;
-
-        return `
+                return `
             <div class="flex items-center gap-3">
                 <div class="w-24 text-sm font-medium text-gray-700">${machine.name}</div>
                 <div class="flex-1 h-4 bg-gray-100 rounded-full overflow-hidden">
@@ -1471,18 +1477,18 @@ function updateDashboard() {
                 <div class="w-20 text-right text-sm text-gray-600">${machineTotal.toLocaleString()}</div>
             </div>
         `;
-    }).join('');
+            }).join('');
 
-    document.getElementById('machine-stats').innerHTML = machineStatsHtml || '<p class="text-gray-500 text-center">Nenhuma máquina</p>';
+            document.getElementById('machine-stats').innerHTML = machineStatsHtml || '<p class="text-gray-500 text-center">Nenhuma máquina</p>';
 
-    // Recent records
-    const recent = [...filtered].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10);
+            // Recent records
+            const recent = [...filtered].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10);
 
-    const recentHtml = recent.map(p => {
-        const machine = machines[p.machineId];
-        const operator = operators[p.operatorId];
+            const recentHtml = recent.map(p => {
+                const machine = machines[p.machineId];
+                const operator = operators[p.operatorId];
 
-        return `
+                return `
             <div class="p-3 rounded-lg ${getProductionClass(p.quantity)}">
                 <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
@@ -1496,65 +1502,65 @@ function updateDashboard() {
                 </div>
             </div>
         `;
-    }).join('');
+            }).join('');
 
-    document.getElementById('recent-records').innerHTML = recentHtml || '<p class="text-gray-500 text-center py-4">Nenhum registro</p>';
-}
-
-// Production View
-function updateProductionView() {
-    const monthKey = getMonthKey(currentMonth);
-    const { startDate, endDate } = getCustomMonthRange(currentMonth);
-
-    const currentMachine = Object.entries(machines).find(([id, m]) => m.name.includes(selectedMachine));
-
-    if (!currentMachine) {
-        document.getElementById('calendar-days').innerHTML = '<p class="col-span-7 text-center text-gray-500 py-4">Configure as máquinas primeiro</p>';
-        document.getElementById('monthly-table-body').innerHTML = '';
-        return;
-    }
-
-    const [machineId, machineData] = currentMachine;
-    const filtered = getFilteredProductions().filter(p =>
-        isDateInCustomMonth(p.date, currentMonth) && p.machineId === machineId
-    );
-
-    // Calendar - iterate from 26th to 25th
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    let calendarHtml = '';
-    const currentDate = new Date(startDate);
-
-    // Add empty cells for days before the start day of week
-    const firstDayOfWeek = startDate.getDay();
-    for (let i = 0; i < firstDayOfWeek; i++) {
-        calendarHtml += '<div class="aspect-square"></div>';
-    }
-
-    // Iterate through all days in the custom month (26th to 25th)
-    while (currentDate <= endDate) {
-        const dateStr = currentDate.toISOString().split('T')[0];
-        const dayDate = new Date(currentDate);
-        const hasData = filtered.some(p => p.date === dateStr);
-        const isFuture = dayDate > today;
-        const isToday = dayDate.getTime() === today.getTime();
-
-        let dayClass = 'calendar-day cursor-pointer rounded-lg flex items-center justify-center aspect-square font-medium text-sm';
-
-        if (isFuture) {
-            dayClass += ' future disabled';
-        } else if (hasData) {
-            dayClass += ' has-data';
-        } else {
-            dayClass += ' no-data';
+            document.getElementById('recent-records').innerHTML = recentHtml || '<p class="text-gray-500 text-center py-4">Nenhum registro</p>';
         }
 
-        if (isToday) dayClass += ' ring-2 ring-cyan-500';
+        // Production View
+        function updateProductionView() {
+            const monthKey = getMonthKey(currentMonth);
+            const { startDate, endDate } = getCustomMonthRange(currentMonth);
 
-        const dayProduction = filtered.find(p => p.date === dateStr);
+            const currentMachine = Object.entries(machines).find(([id, m]) => m.name.includes(selectedMachine));
 
-        calendarHtml += `
+            if (!currentMachine) {
+                document.getElementById('calendar-days').innerHTML = '<p class="col-span-7 text-center text-gray-500 py-4">Configure as máquinas primeiro</p>';
+                document.getElementById('monthly-table-body').innerHTML = '';
+                return;
+            }
+
+            const [machineId, machineData] = currentMachine;
+            const filtered = getFilteredProductions().filter(p =>
+                isDateInCustomMonth(p.date, currentMonth) && p.machineId === machineId
+            );
+
+            // Calendar - iterate from 26th to 25th
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            let calendarHtml = '';
+            const currentDate = new Date(startDate);
+
+            // Add empty cells for days before the start day of week
+            const firstDayOfWeek = startDate.getDay();
+            for (let i = 0; i < firstDayOfWeek; i++) {
+                calendarHtml += '<div class="aspect-square"></div>';
+            }
+
+            // Iterate through all days in the custom month (26th to 25th)
+            while (currentDate <= endDate) {
+                const dateStr = currentDate.toISOString().split('T')[0];
+                const dayDate = new Date(currentDate);
+                const hasData = filtered.some(p => p.date === dateStr);
+                const isFuture = dayDate > today;
+                const isToday = dayDate.getTime() === today.getTime();
+
+                let dayClass = 'calendar-day cursor-pointer rounded-lg flex items-center justify-center aspect-square font-medium text-sm';
+
+                if (isFuture) {
+                    dayClass += ' future disabled';
+                } else if (hasData) {
+                    dayClass += ' has-data';
+                } else {
+                    dayClass += ' no-data';
+                }
+
+                if (isToday) dayClass += ' ring-2 ring-cyan-500';
+
+                const dayProduction = filtered.find(p => p.date === dateStr);
+
+                calendarHtml += `
             <div class="${dayClass}" data-date="${dateStr}"
                 ${isFuture ? '' : `
                 onclick="${dayProduction
@@ -1566,17 +1572,17 @@ function updateProductionView() {
             </div>
         `;
 
-        // Move to next day
-        currentDate.setDate(currentDate.getDate() + 1);
-    }
+                // Move to next day
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
 
-    document.getElementById('calendar-days').innerHTML = calendarHtml;
+            document.getElementById('calendar-days').innerHTML = calendarHtml;
 
-    // --- TABLE HEADER ---
-    const tableElement = document.getElementById('monthly-table-body').closest('table');
-    if (tableElement) {
-        const thead = tableElement.querySelector('thead');
-        thead.innerHTML = `
+            // --- TABLE HEADER ---
+            const tableElement = document.getElementById('monthly-table-body').closest('table');
+            if (tableElement) {
+                const thead = tableElement.querySelector('thead');
+                thead.innerHTML = `
                 <tr class="primary-gradient">
                     <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Data</th>
                     <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Turno</th>
@@ -1585,39 +1591,39 @@ function updateProductionView() {
                     <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Tempo Parado</th>
                     <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Ações</th>
                 </tr>`;
-    }
+            }
 
-    // Table - iterate from 26th to 25th
-    const isClosed = isMonthClosed(monthKey);
-    let tableHtml = '';
+            // Table - iterate from 26th to 25th
+            const isClosed = isMonthClosed(monthKey);
+            let tableHtml = '';
 
-    const tableDate = new Date(startDate);
-    while (tableDate <= endDate) {
-        const dateStr = tableDate.toISOString().split('T')[0];
-        const dayDate = new Date(tableDate);
-        const isFuture = dayDate > today;
-        const dayProds = filtered.filter(p => p.date === dateStr);
+            const tableDate = new Date(startDate);
+            while (tableDate <= endDate) {
+                const dateStr = tableDate.toISOString().split('T')[0];
+                const dayDate = new Date(tableDate);
+                const isFuture = dayDate > today;
+                const dayProds = filtered.filter(p => p.date === dateStr);
 
-        if (dayProds.length > 0) {
-            dayProds.forEach(p => {
-                const operator = operators[p.operatorId];
+                if (dayProds.length > 0) {
+                    dayProds.forEach(p => {
+                        const operator = operators[p.operatorId];
 
-                // ✅ MONTAR TEMPO PARADO (horas e minutos)
-                const hours = p.downtimeHours || 0;
-                const minutes = p.downtimeMinutes || 0;
-                let downtimeDisplay = '';
+                        // ✅ MONTAR TEMPO PARADO (horas e minutos)
+                        const hours = p.downtimeHours || 0;
+                        const minutes = p.downtimeMinutes || 0;
+                        let downtimeDisplay = '';
 
-                if (hours > 0 && minutes > 0) {
-                    downtimeDisplay = `${hours}h ${minutes}min`;
-                } else if (hours > 0) {
-                    downtimeDisplay = `${hours}h`;
-                } else if (minutes > 0) {
-                    downtimeDisplay = `${minutes}min`;
-                } else {
-                    downtimeDisplay = '-';
-                }
+                        if (hours > 0 && minutes > 0) {
+                            downtimeDisplay = `${hours}h ${minutes}min`;
+                        } else if (hours > 0) {
+                            downtimeDisplay = `${hours}h`;
+                        } else if (minutes > 0) {
+                            downtimeDisplay = `${minutes}min`;
+                        } else {
+                            downtimeDisplay = '-';
+                        }
 
-                tableHtml += `
+                        tableHtml += `
                 <tr class="${getProductionClass(p.quantity)} border-b border-gray-100">
                     <td class="px-4 py-3 text-sm">${formatDate(dateStr)}</td>
                     <td class="px-4 py-3 text-sm">${operator ? getShiftBadge(operator.shift) : '-'}</td>
@@ -1636,9 +1642,9 @@ function updateProductionView() {
                     </td>
                 </tr>
                 `;
-            });
-        } else if (!isFuture) {
-            tableHtml += `
+                    });
+                } else if (!isFuture) {
+                    tableHtml += `
                 <tr class="empty-row border-b border-gray-50">
                 <td class="px-4 py-3 text-sm text-gray-400">${formatDate(dateStr)}</td>
                 <td colspan="4" class="px-4 py-3 text-sm text-gray-400 text-center italic">Sem registros</td>
@@ -1649,56 +1655,56 @@ function updateProductionView() {
                 </td>
                 </tr>
             `;
+                }
+
+                // Move to next day
+                tableDate.setDate(tableDate.getDate() + 1);
+            }
+
+            document.getElementById('monthly-table-body').innerHTML = tableHtml || '<tr><td colspan="6" class="text-center py-8 text-gray-500">Nenhum registro</td></tr>';
         }
 
-        // Move to next day
-        tableDate.setDate(tableDate.getDate() + 1);
-    }
+        async function showProductionModal(date, productionId = null) {
+            // ✅ REMOVIDO: Validação de mês fechado - agora ignora
 
-    document.getElementById('monthly-table-body').innerHTML = tableHtml || '<tr><td colspan="6" class="text-center py-8 text-gray-500">Nenhum registro</td></tr>';
-}
+            const currentMachine = Object.entries(machines)
+                .find(([id, m]) => m.name.includes(selectedMachine));
 
-async function showProductionModal(date, productionId = null) {
-    // ✅ REMOVIDO: Validação de mês fechado - agora ignora
+            const machineId = currentMachine?.[0];
 
-    const currentMachine = Object.entries(machines)
-        .find(([id, m]) => m.name.includes(selectedMachine));
+            let filteredOps = Object.entries(operators);
+            if (!canViewAllShifts()) {
+                filteredOps = filteredOps.filter(
+                    ([id, o]) => o.shift === getUserShift()
+                );
+            }
 
-    const machineId = currentMachine?.[0];
+            // ✅ BUSCAR PRODUÇÃO CORRETAMENTE (Firebase retorna objeto simples)
+            let production = null;
+            if (productionId) {
+                production = productions[productionId]; // Acesso direto por ID
+            }
 
-    let filteredOps = Object.entries(operators);
-    if (!canViewAllShifts()) {
-        filteredOps = filteredOps.filter(
-            ([id, o]) => o.shift === getUserShift()
-        );
-    }
+            const lastOperatorKey = `lastOperator_${machineId}`;
+            const lastOperatorId = localStorage.getItem(lastOperatorKey);
 
-    // ✅ BUSCAR PRODUÇÃO CORRETAMENTE (Firebase retorna objeto simples)
-    let production = null;
-    if (productionId) {
-        production = productions[productionId]; // Acesso direto por ID
-    }
+            const defaultOperatorId =
+                production?.operatorId ||
+                lastOperatorId ||
+                currentMachine?.[1]?.defaultOperatorId ||
+                '';
 
-    const lastOperatorKey = `lastOperator_${machineId}`;
-    const lastOperatorId = localStorage.getItem(lastOperatorKey);
-
-    const defaultOperatorId =
-        production?.operatorId ||
-        lastOperatorId ||
-        currentMachine?.[1]?.defaultOperatorId ||
-        '';
-
-    const operatorOptions = filteredOps.map(([id, op]) =>
-        `<option value="${id}" ${defaultOperatorId === id ? 'selected' : ''}>
+            const operatorOptions = filteredOps.map(([id, op]) =>
+                `<option value="${id}" ${defaultOperatorId === id ? 'selected' : ''}>
                 ${op.name} (Turno ${op.shift})
             </option>`
-    ).join('');
+            ).join('');
 
-    // ✅ EXTRAIR HORAS E MINUTOS DO TEMPO PARADO
-    const downtimeHours = production?.downtimeHours || '';
-    const downtimeMinutes = production?.downtimeMinutes || '';
+            // ✅ EXTRAIR HORAS E MINUTOS DO TEMPO PARADO
+            const downtimeHours = production?.downtimeHours || '';
+            const downtimeMinutes = production?.downtimeMinutes || '';
 
-    const content = `
+            const content = `
             <form id="production-form" class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Data</label>
@@ -1756,55 +1762,55 @@ async function showProductionModal(date, productionId = null) {
             </form>
         `;
 
-    const modal = showModal(content, {
-        title: production ? 'Editar Registro' : 'Novo Registro'
-    });
+            const modal = showModal(content, {
+                title: production ? 'Editar Registro' : 'Novo Registro'
+            });
 
-    document.getElementById('production-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
+            document.getElementById('production-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
 
-        // ✅ PEGAR HORAS E MINUTOS SEPARADOS
-        const hours = parseInt(document.getElementById('prod-downtime-hours').value) || 0;
-        const minutes = parseInt(document.getElementById('prod-downtime-minutes').value) || 0;
+                // ✅ PEGAR HORAS E MINUTOS SEPARADOS
+                const hours = parseInt(document.getElementById('prod-downtime-hours').value) || 0;
+                const minutes = parseInt(document.getElementById('prod-downtime-minutes').value) || 0;
 
-        // ✅ VALIDAR MINUTOS
-        if (minutes > 59) {
-            showToast('Minutos deve ser entre 0 e 59', 'error');
-            return;
+                // ✅ VALIDAR MINUTOS
+                if (minutes > 59) {
+                    showToast('Minutos deve ser entre 0 e 59', 'error');
+                    return;
+                }
+
+                const data = {
+                    date: document.getElementById('prod-date').value,
+                    machineId,
+                    operatorId: document.getElementById('prod-operator').value,
+                    quantity: parseInt(document.getElementById('prod-quantity').value) || 0,
+                    downtimeHours: hours,
+                    downtimeMinutes: minutes,
+                    observations: document.getElementById('prod-observations').value
+                };
+
+                try {
+                    if (production && productionId) {
+                        // ✅ ATUALIZAR EXISTENTE
+                        await database.ref(`productions/${productionId}`).update(data);
+                        showToast('Registro atualizado!');
+                    } else {
+                        // ✅ CRIAR NOVO
+                        await database.ref('productions').push(data);
+                        showToast('Registro salvo!');
+                    }
+
+                    // Guardar último operador usado
+                    localStorage.setItem(lastOperatorKey, data.operatorId);
+                    closeModal(modal);
+                } catch (error) {
+                    showToast('Erro ao salvar: ' + error.message, 'error');
+                }
+            });
         }
 
-        const data = {
-            date: document.getElementById('prod-date').value,
-            machineId,
-            operatorId: document.getElementById('prod-operator').value,
-            quantity: parseInt(document.getElementById('prod-quantity').value) || 0,
-            downtimeHours: hours,
-            downtimeMinutes: minutes,
-            observations: document.getElementById('prod-observations').value
-        };
-
-        try {
-            if (production && productionId) {
-                // ✅ ATUALIZAR EXISTENTE
-                await database.ref(`productions/${productionId}`).update(data);
-                showToast('Registro atualizado!');
-            } else {
-                // ✅ CRIAR NOVO
-                await database.ref('productions').push(data);
-                showToast('Registro salvo!');
-            }
-
-            // Guardar último operador usado
-            localStorage.setItem(lastOperatorKey, data.operatorId);
-            closeModal(modal);
-        } catch (error) {
-            showToast('Erro ao salvar: ' + error.message, 'error');
-        }
-    });
-}
-
-async function deleteProduction(id) {
-    const content = `
+        async function deleteProduction(id) {
+            const content = `
             <div class="text-center">
             <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
@@ -1817,52 +1823,52 @@ async function deleteProduction(id) {
             </div>
         `;
 
-    const modal = showModal(content, { title: 'Confirmar Exclusão' });
+            const modal = showModal(content, { title: 'Confirmar Exclusão' });
 
-    document.getElementById('cancel-delete').onclick = () => closeModal(modal);
-    document.getElementById('confirm-delete').onclick = async () => {
-        await database.ref(`productions/${id}`).remove();
-        closeModal(modal);
-        showToast('Registro excluído!');
-    };
-}
-
-// Operators View - Optimized
-const OperatorsManager = {
-    // Cache DOM elements
-    operatorsGrid: null,
-
-    init() {
-        this.operatorsGrid = document.getElementById('operators-grid');
-    },
-
-    updateView() {
-        if (!['admin', 'leader'].includes(currentUser?.role)) return;
-
-        const myOperators = this.getFilteredOperators();
-        const html = this.renderOperatorCards(myOperators);
-
-        if (this.operatorsGrid) {
-            this.operatorsGrid.innerHTML = html;
-        }
-    },
-
-    getFilteredOperators() {
-        const entries = Object.entries(operators);
-
-        if (currentUser.role === 'leader') {
-            return entries.filter(([, op]) => op.shift === currentUser.shift);
+            document.getElementById('cancel-delete').onclick = () => closeModal(modal);
+            document.getElementById('confirm-delete').onclick = async () => {
+                await database.ref(`productions/${id}`).remove();
+                closeModal(modal);
+                showToast('Registro excluído!');
+            };
         }
 
-        return entries;
-    },
+        // Operators View - Optimized
+        const OperatorsManager = {
+            // Cache DOM elements
+            operatorsGrid: null,
 
-    renderOperatorCards(operatorsList) {
-        if (!operatorsList.length) {
-            return '<div class="col-span-full text-center py-12"><p class="text-gray-500">Nenhum operador cadastrado</p></div>';
-        }
+            init() {
+                this.operatorsGrid = document.getElementById('operators-grid');
+            },
 
-        return operatorsList.map(([id, op]) => `
+            updateView() {
+                if (!['admin', 'leader'].includes(currentUser?.role)) return;
+
+                const myOperators = this.getFilteredOperators();
+                const html = this.renderOperatorCards(myOperators);
+
+                if (this.operatorsGrid) {
+                    this.operatorsGrid.innerHTML = html;
+                }
+            },
+
+            getFilteredOperators() {
+                const entries = Object.entries(operators);
+
+                if (currentUser.role === 'leader') {
+                    return entries.filter(([, op]) => op.shift === currentUser.shift);
+                }
+
+                return entries;
+            },
+
+            renderOperatorCards(operatorsList) {
+                if (!operatorsList.length) {
+                    return '<div class="col-span-full text-center py-12"><p class="text-gray-500">Nenhum operador cadastrado</p></div>';
+                }
+
+                return operatorsList.map(([id, op]) => `
         <div class="operator-card">
             <div class="flex items-start justify-between mb-4">
             <div class="w-12 h-12 bg-gradient-to-br from-cyan-100 to-cyan-200 rounded-xl flex items-center justify-center">
@@ -1881,18 +1887,18 @@ const OperatorsManager = {
             </div>
         </div>
         `).join('');
-    },
+            },
 
-    showModal(operatorId = null) {
-        const operator = operatorId ? operators[operatorId] : null;
-        const userShift = currentUser.shift;
-        const isAdmin = currentUser.role === 'admin';
+            showModal(operatorId = null) {
+                const operator = operatorId ? operators[operatorId] : null;
+                const userShift = currentUser.shift;
+                const isAdmin = currentUser.role === 'admin';
 
-        const shiftField = isAdmin
-            ? this.renderShiftSelect(operator?.shift)
-            : this.renderShiftReadonly(userShift);
+                const shiftField = isAdmin
+                    ? this.renderShiftSelect(operator?.shift)
+                    : this.renderShiftReadonly(userShift);
 
-        const content = `
+                const content = `
         <form id="my-operator-form" class="space-y-4">
             <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Nome <span class="text-red-500">*</span></label>
@@ -1907,18 +1913,18 @@ const OperatorsManager = {
         </form>
         `;
 
-        const modal = showModal(content, { title: operator ? 'Editar Operador' : 'Novo Operador' });
+                const modal = showModal(content, { title: operator ? 'Editar Operador' : 'Novo Operador' });
 
-        this.attachFormHandler(modal, operatorId, operator, userShift);
-    },
+                this.attachFormHandler(modal, operatorId, operator, userShift);
+            },
 
-    renderShiftSelect(selectedShift = '') {
-        const shifts = ['1', '2', '3'];
-        const options = shifts.map(shift =>
-            `<option value="${shift}" ${selectedShift === shift ? 'selected' : ''}>Turno ${shift}</option>`
-        ).join('');
+            renderShiftSelect(selectedShift = '') {
+                const shifts = ['1', '2', '3'];
+                const options = shifts.map(shift =>
+                    `<option value="${shift}" ${selectedShift === shift ? 'selected' : ''}>Turno ${shift}</option>`
+                ).join('');
 
-        return `
+                return `
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Turno <span class="text-red-500">*</span></label>
             <select id="my-operator-shift" required class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-cyan-500">
@@ -1926,65 +1932,65 @@ const OperatorsManager = {
             </select>
         </div>
         `;
-    },
+            },
 
-    renderShiftReadonly(shift) {
-        return `
+            renderShiftReadonly(shift) {
+                return `
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Turno</label>
             <input type="text" value="Turno ${shift}" readonly 
                 class="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50">
         </div>
         `;
-    },
+            },
 
-    attachFormHandler(modal, operatorId, operator, userShift) {
-        const form = document.getElementById('my-operator-form');
-        if (!form) return;
+            attachFormHandler(modal, operatorId, operator, userShift) {
+                const form = document.getElementById('my-operator-form');
+                if (!form) return;
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
 
-            const nameInput = document.getElementById('my-operator-name');
-            const shiftSelect = document.getElementById('my-operator-shift');
+                    const nameInput = document.getElementById('my-operator-name');
+                    const shiftSelect = document.getElementById('my-operator-shift');
 
-            if (!nameInput || !nameInput.value.trim()) {
-                showToast('Nome é obrigatório!', 'error');
-                return;
-            }
+                    if (!nameInput || !nameInput.value.trim()) {
+                        showToast('Nome é obrigatório!', 'error');
+                        return;
+                    }
 
-            const shift = currentUser.role === 'admin' && shiftSelect
-                ? shiftSelect.value
-                : userShift;
+                    const shift = currentUser.role === 'admin' && shiftSelect
+                        ? shiftSelect.value
+                        : userShift;
 
-            const data = {
-                name: nameInput.value.trim(),
-                shift: shift
-            };
+                    const data = {
+                        name: nameInput.value.trim(),
+                        shift: shift
+                    };
 
-            try {
-                if (operator && operatorId) {
-                    await database.ref(`operators/${operatorId}`).update(data);
-                    showToast('Operador atualizado com sucesso!');
-                } else {
-                    await database.ref('operators').push(data);
-                    showToast('Operador criado com sucesso!');
+                    try {
+                        if (operator && operatorId) {
+                            await database.ref(`operators/${operatorId}`).update(data);
+                            showToast('Operador atualizado com sucesso!');
+                        } else {
+                            await database.ref('operators').push(data);
+                            showToast('Operador criado com sucesso!');
+                        }
+                        closeModal(modal);
+                    } catch (error) {
+                        console.error('Erro ao salvar operador:', error);
+                        showToast('Erro ao salvar operador. Tente novamente.', 'error');
+                    }
+                });
+            },
+
+            async delete(id) {
+                if (!id || !operators[id]) {
+                    showToast('Operador não encontrado!', 'error');
+                    return;
                 }
-                closeModal(modal);
-            } catch (error) {
-                console.error('Erro ao salvar operador:', error);
-                showToast('Erro ao salvar operador. Tente novamente.', 'error');
-            }
-        });
-    },
 
-    async delete(id) {
-        if (!id || !operators[id]) {
-            showToast('Operador não encontrado!', 'error');
-            return;
-        }
-
-        const content = `
+                const content = `
         <div class="text-center">
             <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
@@ -2002,74 +2008,74 @@ const OperatorsManager = {
         </div>
         `;
 
-        const modal = showModal(content, { title: 'Confirmar Exclusão' });
+                const modal = showModal(content, { title: 'Confirmar Exclusão' });
 
-        const cancelBtn = document.getElementById('cancel-delete-op');
-        const confirmBtn = document.getElementById('confirm-delete-op');
+                const cancelBtn = document.getElementById('cancel-delete-op');
+                const confirmBtn = document.getElementById('confirm-delete-op');
 
-        if (cancelBtn) {
-            cancelBtn.onclick = () => closeModal(modal);
-        }
-
-        if (confirmBtn) {
-            confirmBtn.onclick = async () => {
-                try {
-                    await database.ref(`operators/${id}`).remove();
-                    closeModal(modal);
-                    showToast('Operador excluído com sucesso!');
-                } catch (error) {
-                    console.error('Erro ao excluir operador:', error);
-                    showToast('Erro ao excluir operador. Tente novamente.', 'error');
+                if (cancelBtn) {
+                    cancelBtn.onclick = () => closeModal(modal);
                 }
-            };
-        }
-    },
 
-    escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-};
+                if (confirmBtn) {
+                    confirmBtn.onclick = async () => {
+                        try {
+                            await database.ref(`operators/${id}`).remove();
+                            closeModal(modal);
+                            showToast('Operador excluído com sucesso!');
+                        } catch (error) {
+                            console.error('Erro ao excluir operador:', error);
+                            showToast('Erro ao excluir operador. Tente novamente.', 'error');
+                        }
+                    };
+                }
+            },
 
-// Settings Manager - Optimized
-const SettingsManager = {
-    // Cache DOM elements
-    usersTableBody: null,
-    operatorsTableBody: null,
-    machinesTableBody: null,
-    lowLimitInput: null,
-    highLimitInput: null,
+            escapeHtml(text) {
+                if (!text) return '';
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        };
 
-    init() {
-        this.usersTableBody = document.getElementById('users-table-body');
-        this.operatorsTableBody = document.getElementById('operators-table-body');
-        this.machinesTableBody = document.getElementById('machines-table-body');
-        this.lowLimitInput = document.getElementById('low-limit');
-        this.highLimitInput = document.getElementById('high-limit');
-    },
+        // Settings Manager - Optimized
+        const SettingsManager = {
+            // Cache DOM elements
+            usersTableBody: null,
+            operatorsTableBody: null,
+            machinesTableBody: null,
+            lowLimitInput: null,
+            highLimitInput: null,
 
-    updateView() {
-        if (currentUser?.role !== 'admin') return;
+            init() {
+                this.usersTableBody = document.getElementById('users-table-body');
+                this.operatorsTableBody = document.getElementById('operators-table-body');
+                this.machinesTableBody = document.getElementById('machines-table-body');
+                this.lowLimitInput = document.getElementById('low-limit');
+                this.highLimitInput = document.getElementById('high-limit');
+            },
 
-        this.renderUsers();
-        this.renderOperators();
-        this.renderMachines();
-        this.renderLimits();
-    },
+            updateView() {
+                if (currentUser?.role !== 'admin') return;
 
-    renderUsers() {
-        if (!this.usersTableBody) return;
+                this.renderUsers();
+                this.renderOperators();
+                this.renderMachines();
+                this.renderLimits();
+            },
 
-        const entries = Object.entries(users);
+            renderUsers() {
+                if (!this.usersTableBody) return;
 
-        if (!entries.length) {
-            this.usersTableBody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-500">Nenhum usuário cadastrado</td></tr>';
-            return;
-        }
+                const entries = Object.entries(users);
 
-        const html = entries.map(([id, user]) => `
+                if (!entries.length) {
+                    this.usersTableBody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-500">Nenhum usuário cadastrado</td></tr>';
+                    return;
+                }
+
+                const html = entries.map(([id, user]) => `
         <tr class="hover:bg-gray-50 transition-colors">
             <td class="px-4 py-3">${this.escapeHtml(user.username)}</td>
             <td class="px-4 py-3">${this.escapeHtml(user.name)}</td>
@@ -2092,20 +2098,20 @@ const SettingsManager = {
         </tr>
         `).join('');
 
-        this.usersTableBody.innerHTML = html;
-    },
+                this.usersTableBody.innerHTML = html;
+            },
 
-    renderOperators() {
-        if (!this.operatorsTableBody) return;
+            renderOperators() {
+                if (!this.operatorsTableBody) return;
 
-        const entries = Object.entries(operators);
+                const entries = Object.entries(operators);
 
-        if (!entries.length) {
-            this.operatorsTableBody.innerHTML = '<tr><td colspan="3" class="text-center py-8 text-gray-500">Nenhum operador cadastrado</td></tr>';
-            return;
-        }
+                if (!entries.length) {
+                    this.operatorsTableBody.innerHTML = '<tr><td colspan="3" class="text-center py-8 text-gray-500">Nenhum operador cadastrado</td></tr>';
+                    return;
+                }
 
-        const html = entries.map(([id, op]) => `
+                const html = entries.map(([id, op]) => `
         <tr class="hover:bg-gray-50 transition-colors">
             <td class="px-4 py-3">${this.escapeHtml(op.name)}</td>
             <td class="px-4 py-3">${getShiftBadge(op.shift)}</td>
@@ -2124,20 +2130,20 @@ const SettingsManager = {
         </tr>
         `).join('');
 
-        this.operatorsTableBody.innerHTML = html;
-    },
+                this.operatorsTableBody.innerHTML = html;
+            },
 
-    renderMachines() {
-        if (!this.machinesTableBody) return;
+            renderMachines() {
+                if (!this.machinesTableBody) return;
 
-        const entries = Object.entries(machines);
+                const entries = Object.entries(machines);
 
-        if (!entries.length) {
-            this.machinesTableBody.innerHTML = '<tr><td colspan="3" class="text-center py-8 text-gray-500">Nenhuma máquina cadastrada</td></tr>';
-            return;
-        }
+                if (!entries.length) {
+                    this.machinesTableBody.innerHTML = '<tr><td colspan="3" class="text-center py-8 text-gray-500">Nenhuma máquina cadastrada</td></tr>';
+                    return;
+                }
 
-        const html = entries.map(([id, machine]) => `
+                const html = entries.map(([id, machine]) => `
         <tr class="hover:bg-gray-50 transition-colors">
             <td class="px-4 py-3">${this.escapeHtml(machine.name)}</td>
             <td class="px-4 py-3">${(machine.target || 0).toLocaleString('pt-BR')}</td>
@@ -2156,31 +2162,31 @@ const SettingsManager = {
         </tr>
         `).join('');
 
-        this.machinesTableBody.innerHTML = html;
-    },
+                this.machinesTableBody.innerHTML = html;
+            },
 
-    renderLimits() {
-        if (this.lowLimitInput) {
-            this.lowLimitInput.value = settings.lowLimit || 500;
-        }
-        if (this.highLimitInput) {
-            this.highLimitInput.value = settings.highLimit || 1000;
-        }
-    },
+            renderLimits() {
+                if (this.lowLimitInput) {
+                    this.lowLimitInput.value = settings.lowLimit || 500;
+                }
+                if (this.highLimitInput) {
+                    this.highLimitInput.value = settings.highLimit || 1000;
+                }
+            },
 
-    getRoleLabel(role) {
-        const roles = {
-            'admin': '<span class="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">ADM</span>',
-            'leader': '<span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">Líder</span>',
-            'operator': '<span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">Func</span>'
-        };
-        return roles[role] || role;
-    },
+            getRoleLabel(role) {
+                const roles = {
+                    'admin': '<span class="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">ADM</span>',
+                    'leader': '<span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">Líder</span>',
+                    'operator': '<span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">Func</span>'
+                };
+                return roles[role] || role;
+            },
 
-    showUserModal(userId = null) {
-        const user = userId ? users[userId] : null;
+            showUserModal(userId = null) {
+                const user = userId ? users[userId] : null;
 
-        const content = `
+                const content = `
         <form id="user-form" class="space-y-4">
             <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -2240,57 +2246,57 @@ const SettingsManager = {
         </form>
         `;
 
-        const modal = showModal(content, { title: user ? 'Editar Usuário' : 'Novo Usuário' });
+                const modal = showModal(content, { title: user ? 'Editar Usuário' : 'Novo Usuário' });
 
-        this.attachUserFormHandler(modal, userId, user);
-    },
+                this.attachUserFormHandler(modal, userId, user);
+            },
 
-    attachUserFormHandler(modal, userId, user) {
-        const form = document.getElementById('user-form');
-        if (!form) return;
+            attachUserFormHandler(modal, userId, user) {
+                const form = document.getElementById('user-form');
+                if (!form) return;
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
 
-            const usernameInput = document.getElementById('user-username');
-            const nameInput = document.getElementById('user-name');
-            const passwordInput = document.getElementById('user-password');
-            const roleSelect = document.getElementById('user-role');
-            const shiftSelect = document.getElementById('user-shift');
+                    const usernameInput = document.getElementById('user-username');
+                    const nameInput = document.getElementById('user-name');
+                    const passwordInput = document.getElementById('user-password');
+                    const roleSelect = document.getElementById('user-role');
+                    const shiftSelect = document.getElementById('user-shift');
 
-            if (!usernameInput?.value.trim() || !nameInput?.value.trim() || !passwordInput?.value.trim()) {
-                showToast('Preencha todos os campos obrigatórios!', 'error');
-                return;
-            }
+                    if (!usernameInput?.value.trim() || !nameInput?.value.trim() || !passwordInput?.value.trim()) {
+                        showToast('Preencha todos os campos obrigatórios!', 'error');
+                        return;
+                    }
 
-            const data = {
-                username: usernameInput.value.trim(),
-                name: nameInput.value.trim(),
-                password: passwordInput.value.trim(),
-                role: roleSelect.value,
-                shift: shiftSelect.value || null
-            };
+                    const data = {
+                        username: usernameInput.value.trim(),
+                        name: nameInput.value.trim(),
+                        password: passwordInput.value.trim(),
+                        role: roleSelect.value,
+                        shift: shiftSelect.value || null
+                    };
 
-            try {
-                if (user && userId) {
-                    await database.ref(`users/${userId}`).update(data);
-                    showToast('Usuário atualizado com sucesso!');
-                } else {
-                    await database.ref('users').push(data);
-                    showToast('Usuário criado com sucesso!');
-                }
-                closeModal(modal);
-            } catch (error) {
-                console.error('Erro ao salvar usuário:', error);
-                showToast('Erro ao salvar usuário. Tente novamente.', 'error');
-            }
-        });
-    },
+                    try {
+                        if (user && userId) {
+                            await database.ref(`users/${userId}`).update(data);
+                            showToast('Usuário atualizado com sucesso!');
+                        } else {
+                            await database.ref('users').push(data);
+                            showToast('Usuário criado com sucesso!');
+                        }
+                        closeModal(modal);
+                    } catch (error) {
+                        console.error('Erro ao salvar usuário:', error);
+                        showToast('Erro ao salvar usuário. Tente novamente.', 'error');
+                    }
+                });
+            },
 
-    showOperatorModal(operatorId = null) {
-        const operator = operatorId ? operators[operatorId] : null;
+            showOperatorModal(operatorId = null) {
+                const operator = operatorId ? operators[operatorId] : null;
 
-        const content = `
+                const content = `
         <form id="operator-form" class="space-y-4">
             <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -2320,51 +2326,51 @@ const SettingsManager = {
         </form>
         `;
 
-        const modal = showModal(content, { title: operator ? 'Editar Operador' : 'Novo Operador' });
+                const modal = showModal(content, { title: operator ? 'Editar Operador' : 'Novo Operador' });
 
-        this.attachOperatorFormHandler(modal, operatorId, operator);
-    },
+                this.attachOperatorFormHandler(modal, operatorId, operator);
+            },
 
-    attachOperatorFormHandler(modal, operatorId, operator) {
-        const form = document.getElementById('operator-form');
-        if (!form) return;
+            attachOperatorFormHandler(modal, operatorId, operator) {
+                const form = document.getElementById('operator-form');
+                if (!form) return;
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
 
-            const nameInput = document.getElementById('operator-name');
-            const shiftSelect = document.getElementById('operator-shift');
+                    const nameInput = document.getElementById('operator-name');
+                    const shiftSelect = document.getElementById('operator-shift');
 
-            if (!nameInput?.value.trim()) {
-                showToast('Nome é obrigatório!', 'error');
-                return;
-            }
+                    if (!nameInput?.value.trim()) {
+                        showToast('Nome é obrigatório!', 'error');
+                        return;
+                    }
 
-            const data = {
-                name: nameInput.value.trim(),
-                shift: shiftSelect.value
-            };
+                    const data = {
+                        name: nameInput.value.trim(),
+                        shift: shiftSelect.value
+                    };
 
-            try {
-                if (operator && operatorId) {
-                    await database.ref(`operators/${operatorId}`).update(data);
-                    showToast('Operador atualizado com sucesso!');
-                } else {
-                    await database.ref('operators').push(data);
-                    showToast('Operador criado com sucesso!');
-                }
-                closeModal(modal);
-            } catch (error) {
-                console.error('Erro ao salvar operador:', error);
-                showToast('Erro ao salvar operador. Tente novamente.', 'error');
-            }
-        });
-    },
+                    try {
+                        if (operator && operatorId) {
+                            await database.ref(`operators/${operatorId}`).update(data);
+                            showToast('Operador atualizado com sucesso!');
+                        } else {
+                            await database.ref('operators').push(data);
+                            showToast('Operador criado com sucesso!');
+                        }
+                        closeModal(modal);
+                    } catch (error) {
+                        console.error('Erro ao salvar operador:', error);
+                        showToast('Erro ao salvar operador. Tente novamente.', 'error');
+                    }
+                });
+            },
 
-    showMachineModal(machineId = null) {
-        const machine = machineId ? machines[machineId] : null;
+            showMachineModal(machineId = null) {
+                const machine = machineId ? machines[machineId] : null;
 
-        const content = `
+                const content = `
         <form id="machine-form" class="space-y-4">
             <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -2395,81 +2401,81 @@ const SettingsManager = {
         </form>
         `;
 
-        const modal = showModal(content, { title: machine ? 'Editar Máquina' : 'Nova Máquina' });
+                const modal = showModal(content, { title: machine ? 'Editar Máquina' : 'Nova Máquina' });
 
-        this.attachMachineFormHandler(modal, machineId, machine);
-    },
+                this.attachMachineFormHandler(modal, machineId, machine);
+            },
 
-    attachMachineFormHandler(modal, machineId, machine) {
-        const form = document.getElementById('machine-form');
-        if (!form) return;
+            attachMachineFormHandler(modal, machineId, machine) {
+                const form = document.getElementById('machine-form');
+                if (!form) return;
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
 
-            const nameInput = document.getElementById('machine-name');
-            const targetInput = document.getElementById('machine-target');
+                    const nameInput = document.getElementById('machine-name');
+                    const targetInput = document.getElementById('machine-target');
 
-            if (!nameInput?.value.trim()) {
-                showToast('Nome é obrigatório!', 'error');
-                return;
-            }
+                    if (!nameInput?.value.trim()) {
+                        showToast('Nome é obrigatório!', 'error');
+                        return;
+                    }
 
-            const target = parseInt(targetInput.value) || 0;
+                    const target = parseInt(targetInput.value) || 0;
 
-            if (target < 0) {
-                showToast('Meta deve ser um número positivo!', 'error');
-                return;
-            }
+                    if (target < 0) {
+                        showToast('Meta deve ser um número positivo!', 'error');
+                        return;
+                    }
 
-            const data = {
-                name: nameInput.value.trim(),
-                target: target
-            };
+                    const data = {
+                        name: nameInput.value.trim(),
+                        target: target
+                    };
 
-            try {
-                if (machine && machineId) {
-                    await database.ref(`machines/${machineId}`).update(data);
-                    showToast('Máquina atualizada com sucesso!');
-                } else {
-                    await database.ref('machines').push(data);
-                    showToast('Máquina criada com sucesso!');
+                    try {
+                        if (machine && machineId) {
+                            await database.ref(`machines/${machineId}`).update(data);
+                            showToast('Máquina atualizada com sucesso!');
+                        } else {
+                            await database.ref('machines').push(data);
+                            showToast('Máquina criada com sucesso!');
+                        }
+                        closeModal(modal);
+                    } catch (error) {
+                        console.error('Erro ao salvar máquina:', error);
+                        showToast('Erro ao salvar máquina. Tente novamente.', 'error');
+                    }
+                });
+            },
+
+            async deleteItem(collection, id) {
+                if (!collection || !id) {
+                    showToast('Erro ao excluir item!', 'error');
+                    return;
                 }
-                closeModal(modal);
-            } catch (error) {
-                console.error('Erro ao salvar máquina:', error);
-                showToast('Erro ao salvar máquina. Tente novamente.', 'error');
-            }
-        });
-    },
 
-    async deleteItem(collection, id) {
-        if (!collection || !id) {
-            showToast('Erro ao excluir item!', 'error');
-            return;
-        }
+                const collections = {
+                    'users': users,
+                    'operators': operators,
+                    'machines': machines
+                };
 
-        const collections = {
-            'users': users,
-            'operators': operators,
-            'machines': machines
-        };
+                const item = collections[collection]?.[id];
+                if (!item) {
+                    showToast('Item não encontrado!', 'error');
+                    return;
+                }
 
-        const item = collections[collection]?.[id];
-        if (!item) {
-            showToast('Item não encontrado!', 'error');
-            return;
-        }
+                const labels = {
+                    'users': 'usuário',
+                    'operators': 'operador',
+                    'machines': 'máquina'
+                };
 
-        const labels = {
-            'users': 'usuário',
-            'operators': 'operador',
-            'machines': 'máquina'
-        };
+                const itemName = item.name || item.username || 'este item';
 
-        const itemName = item.name || item.username || 'este item';
-
-        const content = `
+                const content = `
         <div class="text-center">
             <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
@@ -2489,228 +2495,228 @@ const SettingsManager = {
         </div>
         `;
 
-        const modal = showModal(content, { title: 'Confirmar Exclusão' });
+                const modal = showModal(content, { title: 'Confirmar Exclusão' });
 
-        const cancelBtn = document.getElementById('cancel-delete');
-        const confirmBtn = document.getElementById('confirm-delete');
+                const cancelBtn = document.getElementById('cancel-delete');
+                const confirmBtn = document.getElementById('confirm-delete');
 
-        if (cancelBtn) {
-            cancelBtn.onclick = () => closeModal(modal);
-        }
-
-        if (confirmBtn) {
-            confirmBtn.onclick = async () => {
-                try {
-                    await database.ref(`${collection}/${id}`).remove();
-                    closeModal(modal);
-                    showToast(`${labels[collection].charAt(0).toUpperCase() + labels[collection].slice(1)} excluído com sucesso!`);
-                } catch (error) {
-                    console.error(`Erro ao excluir ${labels[collection]}:`, error);
-                    showToast(`Erro ao excluir ${labels[collection]}. Tente novamente.`, 'error');
+                if (cancelBtn) {
+                    cancelBtn.onclick = () => closeModal(modal);
                 }
-            };
-        }
-    },
 
-    async saveLimits() {
-        const lowLimit = parseInt(this.lowLimitInput?.value) || 500;
-        const highLimit = parseInt(this.highLimitInput?.value) || 1000;
+                if (confirmBtn) {
+                    confirmBtn.onclick = async () => {
+                        try {
+                            await database.ref(`${collection}/${id}`).remove();
+                            closeModal(modal);
+                            showToast(`${labels[collection].charAt(0).toUpperCase() + labels[collection].slice(1)} excluído com sucesso!`);
+                        } catch (error) {
+                            console.error(`Erro ao excluir ${labels[collection]}:`, error);
+                            showToast(`Erro ao excluir ${labels[collection]}. Tente novamente.`, 'error');
+                        }
+                    };
+                }
+            },
 
-        if (lowLimit < 0 || highLimit < 0) {
-            showToast('Os limites devem ser números positivos!', 'error');
-            return;
-        }
+            async saveLimits() {
+                const lowLimit = parseInt(this.lowLimitInput?.value) || 500;
+                const highLimit = parseInt(this.highLimitInput?.value) || 1000;
 
-        if (lowLimit >= highLimit) {
-            showToast('O limite baixo deve ser menor que o limite alto!', 'error');
-            return;
-        }
+                if (lowLimit < 0 || highLimit < 0) {
+                    showToast('Os limites devem ser números positivos!', 'error');
+                    return;
+                }
 
-        try {
-            await database.ref('settings').set({ lowLimit, highLimit });
-            settings.lowLimit = lowLimit;
-            settings.highLimit = highLimit;
-            showToast('Limites salvos com sucesso!');
-        } catch (error) {
-            console.error('Erro ao salvar limites:', error);
-            showToast('Erro ao salvar limites. Tente novamente.', 'error');
-        }
-    },
+                if (lowLimit >= highLimit) {
+                    showToast('O limite baixo deve ser menor que o limite alto!', 'error');
+                    return;
+                }
 
-    escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-};
+                try {
+                    await database.ref('settings').set({ lowLimit, highLimit });
+                    settings.lowLimit = lowLimit;
+                    settings.highLimit = highLimit;
+                    showToast('Limites salvos com sucesso!');
+                } catch (error) {
+                    console.error('Erro ao salvar limites:', error);
+                    showToast('Erro ao salvar limites. Tente novamente.', 'error');
+                }
+            },
 
-// Inicializa Tab dos Botões de Navegação
-document.addEventListener('DOMContentLoaded', () => {
-    // Desktop navigation
-    const tabBtns = document.querySelectorAll('.tab-btn');
-    const mobileTabBtns = document.querySelectorAll('.mobile-tab-btn');
-    const desktopNav = document.getElementById('desktop-nav');
+            escapeHtml(text) {
+                if (!text) return '';
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        };
 
-    tabBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const tabId = btn.getAttribute('data-tab');
-            switchTab(tabId);
-        });
-    });
+        // Inicializa Tab dos Botões de Navegação
+        document.addEventListener('DOMContentLoaded', () => {
+            // Desktop navigation
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const mobileTabBtns = document.querySelectorAll('.mobile-tab-btn');
+            const desktopNav = document.getElementById('desktop-nav');
 
-    mobileTabBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const tabId = btn.getAttribute('data-tab');
-            switchTab(tabId);
-        });
-    });
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tabId = btn.getAttribute('data-tab');
+                    switchTab(tabId);
+                });
+            });
 
-    // Mobile more menu
-    const mobileMoreBtn = document.getElementById('mobile-more-btn');
-    const mobileMoreMenu = document.getElementById('mobile-more-menu');
+            mobileTabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tabId = btn.getAttribute('data-tab');
+                    switchTab(tabId);
+                });
+            });
 
-    if (mobileMoreBtn) {
-        mobileMoreBtn.addEventListener('click', () => {
-            const isVisible = !mobileMoreMenu.classList.contains('hidden');
-            if (isVisible) {
-                mobileMoreMenu.classList.add('hidden');
-            } else {
-                mobileMoreMenu.classList.remove('hidden');
+            // Mobile more menu
+            const mobileMoreBtn = document.getElementById('mobile-more-btn');
+            const mobileMoreMenu = document.getElementById('mobile-more-menu');
+
+            if (mobileMoreBtn) {
+                mobileMoreBtn.addEventListener('click', () => {
+                    const isVisible = !mobileMoreMenu.classList.contains('hidden');
+                    if (isVisible) {
+                        mobileMoreMenu.classList.add('hidden');
+                    } else {
+                        mobileMoreMenu.classList.remove('hidden');
+                    }
+                });
+            }
+
+            const mobileMoreItems = document.querySelectorAll('.mobile-more-item');
+            mobileMoreItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const tabId = item.getAttribute('data-tab');
+                    switchTab(tabId);
+                    mobileMoreMenu.classList.add('hidden');
+                });
+            });
+
+            // Machine tabs
+            const machineTabs = document.querySelectorAll('.machine-tab');
+            machineTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const machineNum = tab.getAttribute('data-machine');
+                    switchMachine(machineNum);
+                });
+            });
+
+            // View toggle
+            const calendarViewBtn = document.getElementById('calendar-view-btn');
+            const tableViewBtn = document.getElementById('table-view-btn');
+
+            if (calendarViewBtn) {
+                calendarViewBtn.addEventListener('click', () => toggleProductionView('calendar'));
+            }
+
+            if (tableViewBtn) {
+                tableViewBtn.addEventListener('click', () => toggleProductionView('table'));
+            }
+
+            // Month navigation
+            const prevMonthDash = document.getElementById('prev-month-dash');
+            const nextMonthDash = document.getElementById('next-month-dash');
+            const prevMonthProd = document.getElementById('prev-month-prod');
+            const nextMonthProd = document.getElementById('next-month-prod');
+
+            if (prevMonthDash) {
+                prevMonthDash.addEventListener('click', () => navigateMonth(-1));
+            }
+            if (nextMonthDash) {
+                nextMonthDash.addEventListener('click', () => navigateMonth(1));
+            }
+            if (prevMonthProd) {
+                prevMonthProd.addEventListener('click', () => navigateMonth(-1));
+            }
+            if (nextMonthProd) {
+                nextMonthProd.addEventListener('click', () => navigateMonth(1));
+            }
+
+            // Logout
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', () => {
+                    currentUser = null;
+                    localStorage.removeItem('userAuth');
+                    document.getElementById('main-app').classList.add('hidden');
+                    document.getElementById('login-screen').classList.remove('hidden');
+                    document.getElementById('login-username').value = '';
+                    document.getElementById('login-password').value = '';
+                });
+            }
+
+            // Buttons para Settings
+            const addUserBtn = document.getElementById('add-user-btn');
+            const addOperatorBtn = document.getElementById('add-operator-btn');
+            const addMachineBtn = document.getElementById('add-machine-btn');
+            const saveLimitsBtn = document.getElementById('save-limits-btn');
+
+            if (addUserBtn) {
+                addUserBtn.addEventListener('click', () => SettingsManager.showUserModal());
+            }
+            if (addOperatorBtn) {
+                addOperatorBtn.addEventListener('click', () => SettingsManager.showOperatorModal());
+            }
+            if (addMachineBtn) {
+                addMachineBtn.addEventListener('click', () => SettingsManager.showMachineModal());
+            }
+            if (saveLimitsBtn) {
+                saveLimitsBtn.addEventListener('click', () => SettingsManager.saveLimits());
+            }
+
+            // Buttons para Operadores
+            const addMyOperatorBtn = document.getElementById('add-my-operator-btn');
+            if (addMyOperatorBtn) {
+                addMyOperatorBtn.addEventListener('click', () => OperatorsManager.showModal());
             }
         });
-    }
 
-    const mobileMoreItems = document.querySelectorAll('.mobile-more-item');
-    mobileMoreItems.forEach(item => {
-        item.addEventListener('click', () => {
-            const tabId = item.getAttribute('data-tab');
-            switchTab(tabId);
-            mobileMoreMenu.classList.add('hidden');
+        // Initialize on DOM ready
+        document.addEventListener('DOMContentLoaded', () => {
+            OperatorsManager.init();
+            SettingsManager.init();
         });
-    });
 
-    // Machine tabs
-    const machineTabs = document.querySelectorAll('.machine-tab');
-    machineTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const machineNum = tab.getAttribute('data-machine');
-            switchMachine(machineNum);
-        });
-    });
+        // Legacy function aliases for backwards compatibility
+        function updateOperatorsView() {
+            OperatorsManager.updateView();
+        }
 
-    // View toggle
-    const calendarViewBtn = document.getElementById('calendar-view-btn');
-    const tableViewBtn = document.getElementById('table-view-btn');
+        function showMyOperatorModal(operatorId = null) {
+            OperatorsManager.showModal(operatorId);
+        }
 
-    if (calendarViewBtn) {
-        calendarViewBtn.addEventListener('click', () => toggleProductionView('calendar'));
-    }
+        function deleteMyOperator(id) {
+            OperatorsManager.delete(id);
+        }
 
-    if (tableViewBtn) {
-        tableViewBtn.addEventListener('click', () => toggleProductionView('table'));
-    }
+        function updateSettingsView() {
+            SettingsManager.updateView();
+        }
 
-    // Month navigation
-    const prevMonthDash = document.getElementById('prev-month-dash');
-    const nextMonthDash = document.getElementById('next-month-dash');
-    const prevMonthProd = document.getElementById('prev-month-prod');
-    const nextMonthProd = document.getElementById('next-month-prod');
+        function showUserModal(userId = null) {
+            SettingsManager.showUserModal(userId);
+        }
 
-    if (prevMonthDash) {
-        prevMonthDash.addEventListener('click', () => navigateMonth(-1));
-    }
-    if (nextMonthDash) {
-        nextMonthDash.addEventListener('click', () => navigateMonth(1));
-    }
-    if (prevMonthProd) {
-        prevMonthProd.addEventListener('click', () => navigateMonth(-1));
-    }
-    if (nextMonthProd) {
-        nextMonthProd.addEventListener('click', () => navigateMonth(1));
-    }
+        function showOperatorModal(operatorId = null) {
+            SettingsManager.showOperatorModal(operatorId);
+        }
 
-    // Logout
-    const logoutBtn = document.getElementById('logout-btn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
-            currentUser = null;
-            localStorage.removeItem('userAuth');
-            document.getElementById('main-app').classList.add('hidden');
-            document.getElementById('login-screen').classList.remove('hidden');
-            document.getElementById('login-username').value = '';
-            document.getElementById('login-password').value = '';
-        });
-    }
+        function showMachineModal(machineId = null) {
+            SettingsManager.showMachineModal(machineId);
+        }
 
-    // Buttons para Settings
-    const addUserBtn = document.getElementById('add-user-btn');
-    const addOperatorBtn = document.getElementById('add-operator-btn');
-    const addMachineBtn = document.getElementById('add-machine-btn');
-    const saveLimitsBtn = document.getElementById('save-limits-btn');
+        function deleteItem(collection, id) {
+            SettingsManager.deleteItem(collection, id);
+        }
 
-    if (addUserBtn) {
-        addUserBtn.addEventListener('click', () => SettingsManager.showUserModal());
-    }
-    if (addOperatorBtn) {
-        addOperatorBtn.addEventListener('click', () => SettingsManager.showOperatorModal());
-    }
-    if (addMachineBtn) {
-        addMachineBtn.addEventListener('click', () => SettingsManager.showMachineModal());
-    }
-    if (saveLimitsBtn) {
-        saveLimitsBtn.addEventListener('click', () => SettingsManager.saveLimits());
-    }
-
-    // Buttons para Operadores
-    const addMyOperatorBtn = document.getElementById('add-my-operator-btn');
-    if (addMyOperatorBtn) {
-        addMyOperatorBtn.addEventListener('click', () => OperatorsManager.showModal());
-    }
-});
-
-// Initialize on DOM ready
-document.addEventListener('DOMContentLoaded', () => {
-    OperatorsManager.init();
-    SettingsManager.init();
-});
-
-// Legacy function aliases for backwards compatibility
-function updateOperatorsView() {
-    OperatorsManager.updateView();
-}
-
-function showMyOperatorModal(operatorId = null) {
-    OperatorsManager.showModal(operatorId);
-}
-
-function deleteMyOperator(id) {
-    OperatorsManager.delete(id);
-}
-
-function updateSettingsView() {
-    SettingsManager.updateView();
-}
-
-function showUserModal(userId = null) {
-    SettingsManager.showUserModal(userId);
-}
-
-function showOperatorModal(operatorId = null) {
-    SettingsManager.showOperatorModal(operatorId);
-}
-
-function showMachineModal(machineId = null) {
-    SettingsManager.showMachineModal(machineId);
-}
-
-function deleteItem(collection, id) {
-    SettingsManager.deleteItem(collection, id);
-}
-
-async function saveLimits() {
-    return SettingsManager.saveLimits();
-}
+        async function saveLimits() {
+            return SettingsManager.saveLimits();
+        }
 
 
 
@@ -4037,123 +4043,123 @@ async function saveLimits() {
             }
         }
 
-      
 
-// ============================================
-// PERSONNEL DATA (Atestados, Faltas, Advertências, Férias)
-// ============================================
 
-let personnelData = {
-    certificates: {},
-    absences: {},
-    warnings: {},
-    vacations: {}
-};
+        // ============================================
+        // PERSONNEL DATA (Atestados, Faltas, Advertências, Férias)
+        // ============================================
 
-// ============================================
-// SETUP FIREBASE LISTENERS
-// ============================================
+        let personnelData = {
+            certificates: {},
+            absences: {},
+            warnings: {},
+            vacations: {}
+        };
 
-function setupPersonnelListeners() {
-    database.ref('personnel/certificates').on('value', (snapshot) => {
-        personnelData.certificates = snapshot.val() || {};
-        if (currentUser) updatePersonnelView();
-    });
+        // ============================================
+        // SETUP FIREBASE LISTENERS
+        // ============================================
 
-    database.ref('personnel/absences').on('value', (snapshot) => {
-        personnelData.absences = snapshot.val() || {};
-        if (currentUser) updatePersonnelView();
-    });
+        function setupPersonnelListeners() {
+            database.ref('personnel/certificates').on('value', (snapshot) => {
+                personnelData.certificates = snapshot.val() || {};
+                if (currentUser) updatePersonnelView();
+            });
 
-    database.ref('personnel/warnings').on('value', (snapshot) => {
-        personnelData.warnings = snapshot.val() || {};
-        if (currentUser) updatePersonnelView();
-    });
+            database.ref('personnel/absences').on('value', (snapshot) => {
+                personnelData.absences = snapshot.val() || {};
+                if (currentUser) updatePersonnelView();
+            });
 
-    database.ref('personnel/vacations').on('value', (snapshot) => {
-        personnelData.vacations = snapshot.val() || {};
-        if (currentUser) updatePersonnelView();
-    });
-}
+            database.ref('personnel/warnings').on('value', (snapshot) => {
+                personnelData.warnings = snapshot.val() || {};
+                if (currentUser) updatePersonnelView();
+            });
 
-// ============================================
-// GET USER SHIFT NUMBER (CORE FIX)
-// ============================================
+            database.ref('personnel/vacations').on('value', (snapshot) => {
+                personnelData.vacations = snapshot.val() || {};
+                if (currentUser) updatePersonnelView();
+            });
+        }
 
-function getUserShiftNumber() {
-    if (!currentUser?.shift) return null;
-    // Extract just the number: "1º Turno" -> "1", "2" -> "2", etc
-    const match = String(currentUser.shift).match(/(\d+)/);
-    return match ? match[1] : null;
-}
+        // ============================================
+        // GET USER SHIFT NUMBER (CORE FIX)
+        // ============================================
 
-// ============================================
-// GET OPERATORS FILTERED BY SHIFT
-// ============================================
+        function getUserShiftNumber() {
+            if (!currentUser?.shift) return null;
+            // Extract just the number: "1º Turno" -> "1", "2" -> "2", etc
+            const match = String(currentUser.shift).match(/(\d+)/);
+            return match ? match[1] : null;
+        }
 
-function getOperatorsByShift(shift) {
-    if (!shift) return [];
-    
-    const shiftNum = String(shift).match(/(\d+)/);
-    const targetShift = shiftNum ? shiftNum[1] : String(shift);
-    
-    return Object.entries(operators || {})
-        .filter(([id, op]) => {
-            if (!op) return false;
-            const opShiftNum = String(op.shift).match(/(\d+)/);
-            const opShift = opShiftNum ? opShiftNum[1] : String(op.shift);
-            return opShift === targetShift;
-        })
-        .map(([id, op]) => ({ id, ...op }))
-        .sort((a, b) => a.name.localeCompare(b.name));
-}
+        // ============================================
+        // GET OPERATORS FILTERED BY SHIFT
+        // ============================================
 
-// ============================================
-// FILTER DATA BY SHIFT (STRICT ISOLATION)
-// ============================================
+        function getOperatorsByShift(shift) {
+            if (!shift) return [];
 
-function filterDataByShift(data) {
-    const userShiftNum = getUserShiftNumber();
-    if (!userShiftNum) return [];
+            const shiftNum = String(shift).match(/(\d+)/);
+            const targetShift = shiftNum ? shiftNum[1] : String(shift);
 
-    return Object.entries(data || {})
-        .filter(([id, item]) => {
-            if (!item) return false;
-            const itemShiftNum = String(item.shift).match(/(\d+)/);
-            const itemShift = itemShiftNum ? itemShiftNum[1] : String(item.shift);
-            return itemShift === userShiftNum;
-        })
-        .map(([id, item]) => ({ id, ...item }));
-}
+            return Object.entries(operators || {})
+                .filter(([id, op]) => {
+                    if (!op) return false;
+                    const opShiftNum = String(op.shift).match(/(\d+)/);
+                    const opShift = opShiftNum ? opShiftNum[1] : String(op.shift);
+                    return opShift === targetShift;
+                })
+                .map(([id, op]) => ({ id, ...op }))
+                .sort((a, b) => a.name.localeCompare(b.name));
+        }
 
-// ============================================
-// UPDATE PERSONNEL VIEW
-// ============================================
+        // ============================================
+        // FILTER DATA BY SHIFT (STRICT ISOLATION)
+        // ============================================
 
-function updatePersonnelView() {
-    const isAdmin = currentUser?.role === 'admin';
-    const isLeader = currentUser?.role === 'leader';
+        function filterDataByShift(data) {
+            const userShiftNum = getUserShiftNumber();
+            if (!userShiftNum) return [];
 
-    if (!isAdmin && !isLeader) return;
+            return Object.entries(data || {})
+                .filter(([id, item]) => {
+                    if (!item) return false;
+                    const itemShiftNum = String(item.shift).match(/(\d+)/);
+                    const itemShift = itemShiftNum ? itemShiftNum[1] : String(item.shift);
+                    return itemShift === userShiftNum;
+                })
+                .map(([id, item]) => ({ id, ...item }));
+        }
 
-    renderCertificatesTab();
-    renderAbsencesTab();
-    renderWarningsTab();
-    renderVacationsTab();
-}
+        // ============================================
+        // UPDATE PERSONNEL VIEW
+        // ============================================
 
-// ============================================
-// ATESTADOS (CERTIFICATES)
-// ============================================
+        function updatePersonnelView() {
+            const isAdmin = currentUser?.role === 'admin';
+            const isLeader = currentUser?.role === 'leader';
 
-function renderCertificatesTab() {
-    const container = document.getElementById('certificates-container');
-    if (!container) return;
+            if (!isAdmin && !isLeader) return;
 
-    const certs = filterDataByShift(personnelData.certificates);
+            renderCertificatesTab();
+            renderAbsencesTab();
+            renderWarningsTab();
+            renderVacationsTab();
+        }
 
-    if (certs.length === 0) {
-        container.innerHTML = `
+        // ============================================
+        // ATESTADOS (CERTIFICATES)
+        // ============================================
+
+        function renderCertificatesTab() {
+            const container = document.getElementById('certificates-container');
+            if (!container) return;
+
+            const certs = filterDataByShift(personnelData.certificates);
+
+            if (certs.length === 0) {
+                container.innerHTML = `
             <div class="col-span-full flex flex-col items-center justify-center py-12 sm:py-16 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border-2 border-dashed border-blue-200">
                 <div class="p-4 bg-blue-100 rounded-full mb-4">
                     <i class="fas fa-file-medical text-3xl text-blue-500"></i>
@@ -4162,10 +4168,10 @@ function renderCertificatesTab() {
                 <p class="text-gray-400 text-xs sm:text-sm mt-1">Os registros apareceão aqui</p>
             </div>
         `;
-        return;
-    }
+                return;
+            }
 
-    container.innerHTML = certs.map(cert => `
+            container.innerHTML = certs.map(cert => `
         <div class="bg-white rounded-lg sm:rounded-xl border-2 border-blue-200 shadow-md hover:shadow-xl transition-all duration-300 certificate-card group overflow-hidden">
             <div class="bg-gradient-to-r from-blue-500 to-cyan-500 p-3 sm:p-4">
                 <div class="flex items-center justify-between">
@@ -4212,37 +4218,37 @@ function renderCertificatesTab() {
         </div>
     `).join('');
 
-    setupCertificateEventListeners();
-}
+            setupCertificateEventListeners();
+        }
 
-function setupCertificateEventListeners() {
-    document.querySelectorAll('.certificate-delete-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const certId = btn.dataset.certId;
-            showDeleteConfirmation('atestado', () => {
-                database.ref(`personnel/certificates/${certId}`).remove();
-                showToast('Atestado excluído com sucesso!');
+        function setupCertificateEventListeners() {
+            document.querySelectorAll('.certificate-delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const certId = btn.dataset.certId;
+                    showDeleteConfirmation('atestado', () => {
+                        database.ref(`personnel/certificates/${certId}`).remove();
+                        showToast('Atestado excluído com sucesso!');
+                    });
+                });
             });
-        });
-    });
 
-    document.querySelectorAll('.certificate-edit-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const certId = btn.dataset.certId;
-            showCertificateEditModal(personnelData.certificates[certId], certId);
-        });
-    });
-}
+            document.querySelectorAll('.certificate-edit-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const certId = btn.dataset.certId;
+                    showCertificateEditModal(personnelData.certificates[certId], certId);
+                });
+            });
+        }
 
-function showCertificateEditModal(cert, certId) {
-    const userShift = currentUser?.shift;
-    const operatorOptions = getOperatorsByShift(userShift).map(op =>
-        `<option value="${op.id}" ${cert?.operatorId === op.id ? 'selected' : ''}>${op.name}</option>`
-    ).join('');
+        function showCertificateEditModal(cert, certId) {
+            const userShift = currentUser?.shift;
+            const operatorOptions = getOperatorsByShift(userShift).map(op =>
+                `<option value="${op.id}" ${cert?.operatorId === op.id ? 'selected' : ''}>${op.name}</option>`
+            ).join('');
 
-    const content = `
+            const content = `
         <form class="space-y-4" id="cert-edit-form">
             <div>
                 <label class="block text-xs sm:text-sm font-bold text-gray-800 mb-2"><i class="fas fa-user mr-2 text-cyan-600"></i>Operador</label>
@@ -4277,55 +4283,55 @@ function showCertificateEditModal(cert, certId) {
             <button type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-2 sm:py-3 rounded-lg font-bold hover:shadow-lg transition-all text-sm sm:text-base"><i class="fas fa-check mr-2"></i>Salvar</button>
         </form>
     `;
-    const modal = showModal(content, { title: '<i class="fas fa-edit mr-2"></i>Editar Atestado' });
+            const modal = showModal(content, { title: '<i class="fas fa-edit mr-2"></i>Editar Atestado' });
 
-    const typeSelect = document.getElementById('cert-type');
-    const outrosField = document.getElementById('cert-outros-field');
-    typeSelect?.addEventListener('change', () => {
-        outrosField.classList.toggle('hidden', typeSelect.value !== 'Outros');
-    });
-    if (cert?.type === 'Outros') outrosField.classList.remove('hidden');
+            const typeSelect = document.getElementById('cert-type');
+            const outrosField = document.getElementById('cert-outros-field');
+            typeSelect?.addEventListener('change', () => {
+                outrosField.classList.toggle('hidden', typeSelect.value !== 'Outros');
+            });
+            if (cert?.type === 'Outros') outrosField.classList.remove('hidden');
 
-    document.getElementById('cert-edit-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const operatorId = document.getElementById('cert-op-id').value;
-        const selectedOperator = operators[operatorId];
+            document.getElementById('cert-edit-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const operatorId = document.getElementById('cert-op-id').value;
+                const selectedOperator = operators[operatorId];
 
-        const data = {
-            operatorId: operatorId,
-            operatorName: selectedOperator?.name || '',
-            shift: selectedOperator?.shift || currentUser?.shift,
-            type: document.getElementById('cert-type').value,
-            outrosType: document.getElementById('cert-type').value === 'Outros' ? document.getElementById('cert-outros-type').value : null,
-            date: document.getElementById('cert-date').value,
-            days: parseInt(document.getElementById('cert-days').value),
-            observation: document.getElementById('cert-obs').value,
-            status: 'Aprovado',
-            operatorRole: selectedOperator?.role || 'Operador',
-            department: 'Produção'
-        };
+                const data = {
+                    operatorId: operatorId,
+                    operatorName: selectedOperator?.name || '',
+                    shift: selectedOperator?.shift || currentUser?.shift,
+                    type: document.getElementById('cert-type').value,
+                    outrosType: document.getElementById('cert-type').value === 'Outros' ? document.getElementById('cert-outros-type').value : null,
+                    date: document.getElementById('cert-date').value,
+                    days: parseInt(document.getElementById('cert-days').value),
+                    observation: document.getElementById('cert-obs').value,
+                    status: 'Aprovado',
+                    operatorRole: selectedOperator?.role || 'Operador',
+                    department: 'Produção'
+                };
 
-        database.ref(`personnel/certificates/${certId}`).update(data).then(() => {
-            showToast('Atestado atualizado com sucesso!');
-            document.querySelectorAll('.modal-overlay').forEach(m => closeModal(m));
-        }).catch(error => {
-            showToast('Erro ao atualizar: ' + error.message, 'error');
-        });
-    });
-}
+                database.ref(`personnel/certificates/${certId}`).update(data).then(() => {
+                    showToast('Atestado atualizado com sucesso!');
+                    document.querySelectorAll('.modal-overlay').forEach(m => closeModal(m));
+                }).catch(error => {
+                    showToast('Erro ao atualizar: ' + error.message, 'error');
+                });
+            });
+        }
 
-// ============================================
-// FALTAS (ABSENCES)
-// ============================================
+        // ============================================
+        // FALTAS (ABSENCES)
+        // ============================================
 
-function renderAbsencesTab() {
-    const container = document.getElementById('absences-container');
-    if (!container) return;
+        function renderAbsencesTab() {
+            const container = document.getElementById('absences-container');
+            if (!container) return;
 
-    const absences = filterDataByShift(personnelData.absences);
+            const absences = filterDataByShift(personnelData.absences);
 
-    if (absences.length === 0) {
-        container.innerHTML = `
+            if (absences.length === 0) {
+                container.innerHTML = `
             <div class="col-span-full flex flex-col items-center justify-center py-12 sm:py-16 bg-gradient-to-br from-red-50 to-orange-50 rounded-xl border-2 border-dashed border-red-200">
                 <div class="p-4 bg-red-100 rounded-full mb-4">
                     <i class="fas fa-user-slash text-3xl text-red-500"></i>
@@ -4334,10 +4340,10 @@ function renderAbsencesTab() {
                 <p class="text-gray-400 text-xs sm:text-sm mt-1">Os registros apareceão aqui</p>
             </div>
         `;
-        return;
-    }
+                return;
+            }
 
-    container.innerHTML = absences.map(abs => `
+            container.innerHTML = absences.map(abs => `
         <div class="bg-white rounded-lg sm:rounded-xl border-2 border-red-200 shadow-md hover:shadow-xl transition-all duration-300 absence-card group overflow-hidden">
             <div class="bg-gradient-to-r from-red-500 to-orange-500 p-3 sm:p-4">
                 <div class="flex items-center justify-between">
@@ -4380,37 +4386,37 @@ function renderAbsencesTab() {
         </div>
     `).join('');
 
-    setupAbsenceEventListeners();
-}
+            setupAbsenceEventListeners();
+        }
 
-function setupAbsenceEventListeners() {
-    document.querySelectorAll('.absence-delete-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const absId = btn.dataset.absId;
-            showDeleteConfirmation('falta', () => {
-                database.ref(`personnel/absences/${absId}`).remove();
-                showToast('Falta excluída com sucesso!');
+        function setupAbsenceEventListeners() {
+            document.querySelectorAll('.absence-delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const absId = btn.dataset.absId;
+                    showDeleteConfirmation('falta', () => {
+                        database.ref(`personnel/absences/${absId}`).remove();
+                        showToast('Falta excluída com sucesso!');
+                    });
+                });
             });
-        });
-    });
 
-    document.querySelectorAll('.absence-edit-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const absId = btn.dataset.absId;
-            showAbsenceEditModal(personnelData.absences[absId], absId);
-        });
-    });
-}
+            document.querySelectorAll('.absence-edit-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const absId = btn.dataset.absId;
+                    showAbsenceEditModal(personnelData.absences[absId], absId);
+                });
+            });
+        }
 
-function showAbsenceEditModal(abs, absId) {
-    const userShift = currentUser?.shift;
-    const operatorOptions = getOperatorsByShift(userShift).map(op =>
-        `<option value="${op.id}" ${abs?.operatorId === op.id ? 'selected' : ''}>${op.name}</option>`
-    ).join('');
+        function showAbsenceEditModal(abs, absId) {
+            const userShift = currentUser?.shift;
+            const operatorOptions = getOperatorsByShift(userShift).map(op =>
+                `<option value="${op.id}" ${abs?.operatorId === op.id ? 'selected' : ''}>${op.name}</option>`
+            ).join('');
 
-    const content = `
+            const content = `
         <form class="space-y-4" id="abs-edit-form">
             <div>
                 <label class="block text-xs sm:text-sm font-bold text-gray-800 mb-2"><i class="fas fa-user mr-2 text-cyan-600"></i>Operador</label>
@@ -4433,46 +4439,46 @@ function showAbsenceEditModal(abs, absId) {
             <button type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-2 sm:py-3 rounded-lg font-bold hover:shadow-lg transition-all text-sm sm:text-base"><i class="fas fa-check mr-2"></i>Salvar</button>
         </form>
     `;
-    const modal = showModal(content, { title: '<i class="fas fa-edit mr-2"></i>Editar Falta' });
+            const modal = showModal(content, { title: '<i class="fas fa-edit mr-2"></i>Editar Falta' });
 
-    document.getElementById('abs-edit-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const operatorId = document.getElementById('abs-op-id').value;
-        const selectedOperator = operators[operatorId];
+            document.getElementById('abs-edit-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const operatorId = document.getElementById('abs-op-id').value;
+                const selectedOperator = operators[operatorId];
 
-        const data = {
-            operatorId: operatorId,
-            operatorName: selectedOperator?.name || '',
-            date: document.getElementById('abs-date').value,
-            type: document.getElementById('abs-type').value,
-            shift: selectedOperator?.shift || currentUser?.shift,
-            totalAbsences: 1,
-            monthTotal: 1,
-            operatorRole: selectedOperator?.role || 'Operador',
-            department: 'Produção'
-        };
+                const data = {
+                    operatorId: operatorId,
+                    operatorName: selectedOperator?.name || '',
+                    date: document.getElementById('abs-date').value,
+                    type: document.getElementById('abs-type').value,
+                    shift: selectedOperator?.shift || currentUser?.shift,
+                    totalAbsences: 1,
+                    monthTotal: 1,
+                    operatorRole: selectedOperator?.role || 'Operador',
+                    department: 'Produção'
+                };
 
-        database.ref(`personnel/absences/${absId}`).update(data).then(() => {
-            showToast('Falta atualizada com sucesso!');
-            document.querySelectorAll('.modal-overlay').forEach(m => closeModal(m));
-        }).catch(error => {
-            showToast('Erro ao atualizar: ' + error.message, 'error');
-        });
-    });
-}
+                database.ref(`personnel/absences/${absId}`).update(data).then(() => {
+                    showToast('Falta atualizada com sucesso!');
+                    document.querySelectorAll('.modal-overlay').forEach(m => closeModal(m));
+                }).catch(error => {
+                    showToast('Erro ao atualizar: ' + error.message, 'error');
+                });
+            });
+        }
 
-// ============================================
-// ADVERTÊNCIAS (WARNINGS)
-// ============================================
+        // ============================================
+        // ADVERTÊNCIAS (WARNINGS)
+        // ============================================
 
-function renderWarningsTab() {
-    const container = document.getElementById('warnings-container');
-    if (!container) return;
+        function renderWarningsTab() {
+            const container = document.getElementById('warnings-container');
+            if (!container) return;
 
-    const warnings = filterDataByShift(personnelData.warnings);
+            const warnings = filterDataByShift(personnelData.warnings);
 
-    if (warnings.length === 0) {
-        container.innerHTML = `
+            if (warnings.length === 0) {
+                container.innerHTML = `
             <div class="col-span-full flex flex-col items-center justify-center py-12 sm:py-16 bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl border-2 border-dashed border-orange-200">
                 <div class="p-4 bg-orange-100 rounded-full mb-4">
                     <i class="fas fa-flag text-3xl text-orange-500"></i>
@@ -4481,10 +4487,10 @@ function renderWarningsTab() {
                 <p class="text-gray-400 text-xs sm:text-sm mt-1">Os registros apareceão aqui</p>
             </div>
         `;
-        return;
-    }
+                return;
+            }
 
-    container.innerHTML = warnings.map(warn => `
+            container.innerHTML = warnings.map(warn => `
         <div class="bg-white rounded-lg sm:rounded-xl border-2 border-orange-200 shadow-md hover:shadow-xl transition-all duration-300 warning-card group overflow-hidden">
             <div class="bg-gradient-to-r from-orange-500 to-amber-500 p-3 sm:p-4">
                 <div class="flex items-center justify-between">
@@ -4531,37 +4537,37 @@ function renderWarningsTab() {
         </div>
     `).join('');
 
-    setupWarningEventListeners();
-}
+            setupWarningEventListeners();
+        }
 
-function setupWarningEventListeners() {
-    document.querySelectorAll('.warning-delete-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const warnId = btn.dataset.warnId;
-            showDeleteConfirmation('advertência', () => {
-                database.ref(`personnel/warnings/${warnId}`).remove();
-                showToast('Advertência excluída com sucesso!');
+        function setupWarningEventListeners() {
+            document.querySelectorAll('.warning-delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const warnId = btn.dataset.warnId;
+                    showDeleteConfirmation('advertência', () => {
+                        database.ref(`personnel/warnings/${warnId}`).remove();
+                        showToast('Advertência excluída com sucesso!');
+                    });
+                });
             });
-        });
-    });
 
-    document.querySelectorAll('.warning-edit-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const warnId = btn.dataset.warnId;
-            showWarningEditModal(personnelData.warnings[warnId], warnId);
-        });
-    });
-}
+            document.querySelectorAll('.warning-edit-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const warnId = btn.dataset.warnId;
+                    showWarningEditModal(personnelData.warnings[warnId], warnId);
+                });
+            });
+        }
 
-function showWarningEditModal(warn, warnId) {
-    const userShift = currentUser?.shift;
-    const operatorOptions = getOperatorsByShift(userShift).map(op =>
-        `<option value="${op.id}" ${warn?.operatorId === op.id ? 'selected' : ''}>${op.name}</option>`
-    ).join('');
+        function showWarningEditModal(warn, warnId) {
+            const userShift = currentUser?.shift;
+            const operatorOptions = getOperatorsByShift(userShift).map(op =>
+                `<option value="${op.id}" ${warn?.operatorId === op.id ? 'selected' : ''}>${op.name}</option>`
+            ).join('');
 
-    const content = `
+            const content = `
         <form class="space-y-4" id="warn-edit-form">
             <div>
                 <label class="block text-xs sm:text-sm font-bold text-gray-800 mb-2"><i class="fas fa-user mr-2 text-cyan-600"></i>Operador</label>
@@ -4593,47 +4599,47 @@ function showWarningEditModal(warn, warnId) {
             <button type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-2 sm:py-3 rounded-lg font-bold hover:shadow-lg transition-all text-sm sm:text-base"><i class="fas fa-check mr-2"></i>Salvar</button>
         </form>
     `;
-    const modal = showModal(content, { title: '<i class="fas fa-edit mr-2"></i>Editar Advertência' });
+            const modal = showModal(content, { title: '<i class="fas fa-edit mr-2"></i>Editar Advertência' });
 
-    document.getElementById('warn-edit-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const operatorId = document.getElementById('warn-op-id').value;
-        const selectedOperator = operators[operatorId];
+            document.getElementById('warn-edit-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const operatorId = document.getElementById('warn-op-id').value;
+                const selectedOperator = operators[operatorId];
 
-        const data = {
-            operatorId: operatorId,
-            operatorName: selectedOperator?.name || '',
-            shift: selectedOperator?.shift || currentUser?.shift,
-            level: document.getElementById('warn-level').value,
-            reason: document.getElementById('warn-reason').value,
-            date: document.getElementById('warn-date').value,
-            description: document.getElementById('warn-description').value,
-            status: 'Ativa',
-            operatorRole: selectedOperator?.role || 'Operador',
-            department: 'Produção'
-        };
+                const data = {
+                    operatorId: operatorId,
+                    operatorName: selectedOperator?.name || '',
+                    shift: selectedOperator?.shift || currentUser?.shift,
+                    level: document.getElementById('warn-level').value,
+                    reason: document.getElementById('warn-reason').value,
+                    date: document.getElementById('warn-date').value,
+                    description: document.getElementById('warn-description').value,
+                    status: 'Ativa',
+                    operatorRole: selectedOperator?.role || 'Operador',
+                    department: 'Produção'
+                };
 
-        database.ref(`personnel/warnings/${warnId}`).update(data).then(() => {
-            showToast('Advertência atualizada com sucesso!');
-            document.querySelectorAll('.modal-overlay').forEach(m => closeModal(m));
-        }).catch(error => {
-            showToast('Erro ao atualizar: ' + error.message, 'error');
-        });
-    });
-}
+                database.ref(`personnel/warnings/${warnId}`).update(data).then(() => {
+                    showToast('Advertência atualizada com sucesso!');
+                    document.querySelectorAll('.modal-overlay').forEach(m => closeModal(m));
+                }).catch(error => {
+                    showToast('Erro ao atualizar: ' + error.message, 'error');
+                });
+            });
+        }
 
-// ============================================
-// FÉRIAS (VACATIONS)
-// ============================================
+        // ============================================
+        // FÉRIAS (VACATIONS)
+        // ============================================
 
-function renderVacationsTab() {
-    const container = document.getElementById('vacations-container');
-    if (!container) return;
+        function renderVacationsTab() {
+            const container = document.getElementById('vacations-container');
+            if (!container) return;
 
-    const vacations = filterDataByShift(personnelData.vacations);
+            const vacations = filterDataByShift(personnelData.vacations);
 
-    if (vacations.length === 0) {
-        container.innerHTML = `
+            if (vacations.length === 0) {
+                container.innerHTML = `
             <div class="col-span-full flex flex-col items-center justify-center py-12 sm:py-16 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-2 border-dashed border-purple-200">
                 <div class="p-4 bg-purple-100 rounded-full mb-4">
                     <i class="fas fa-sun text-3xl text-purple-500"></i>
@@ -4642,10 +4648,10 @@ function renderVacationsTab() {
                 <p class="text-gray-400 text-xs sm:text-sm mt-1">Os registros apareceão aqui</p>
             </div>
         `;
-        return;
-    }
+                return;
+            }
 
-    container.innerHTML = vacations.map(vac => `
+            container.innerHTML = vacations.map(vac => `
         <div class="bg-white rounded-lg sm:rounded-xl border-2 border-purple-200 shadow-md hover:shadow-xl transition-all duration-300 vacation-card group overflow-hidden">
             <div class="bg-gradient-to-r from-purple-500 to-pink-500 p-3 sm:p-4">
                 <div class="flex items-center justify-between">
@@ -4692,37 +4698,37 @@ function renderVacationsTab() {
         </div>
     `).join('');
 
-    setupVacationEventListeners();
-}
+            setupVacationEventListeners();
+        }
 
-function setupVacationEventListeners() {
-    document.querySelectorAll('.vacation-delete-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const vacId = btn.dataset.vacId;
-            showDeleteConfirmation('férias', () => {
-                database.ref(`personnel/vacations/${vacId}`).remove();
-                showToast('Férias excluída com sucesso!');
+        function setupVacationEventListeners() {
+            document.querySelectorAll('.vacation-delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const vacId = btn.dataset.vacId;
+                    showDeleteConfirmation('férias', () => {
+                        database.ref(`personnel/vacations/${vacId}`).remove();
+                        showToast('Férias excluída com sucesso!');
+                    });
+                });
             });
-        });
-    });
 
-    document.querySelectorAll('.vacation-edit-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const vacId = btn.dataset.vacId;
-            showVacationEditModal(personnelData.vacations[vacId], vacId);
-        });
-    });
-}
+            document.querySelectorAll('.vacation-edit-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const vacId = btn.dataset.vacId;
+                    showVacationEditModal(personnelData.vacations[vacId], vacId);
+                });
+            });
+        }
 
-function showVacationEditModal(vac, vacId) {
-    const userShift = currentUser?.shift;
-    const operatorOptions = getOperatorsByShift(userShift).map(op =>
-        `<option value="${op.id}" ${vac?.operatorId === op.id ? 'selected' : ''}>${op.name}</option>`
-    ).join('');
+        function showVacationEditModal(vac, vacId) {
+            const userShift = currentUser?.shift;
+            const operatorOptions = getOperatorsByShift(userShift).map(op =>
+                `<option value="${op.id}" ${vac?.operatorId === op.id ? 'selected' : ''}>${op.name}</option>`
+            ).join('');
 
-    const content = `
+            const content = `
         <form class="space-y-4" id="vac-edit-form">
             <div>
                 <label class="block text-xs sm:text-sm font-bold text-gray-800 mb-2"><i class="fas fa-user mr-2 text-cyan-600"></i>Operador</label>
@@ -4758,54 +4764,54 @@ function showVacationEditModal(vac, vacId) {
             <button type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-2 sm:py-3 rounded-lg font-bold hover:shadow-lg transition-all text-sm sm:text-base"><i class="fas fa-check mr-2"></i>Salvar</button>
         </form>
     `;
-    const modal = showModal(content, { title: '<i class="fas fa-edit mr-2"></i>Editar Férias' });
+            const modal = showModal(content, { title: '<i class="fas fa-edit mr-2"></i>Editar Férias' });
 
-    document.getElementById('vac-edit-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const operatorId = document.getElementById('vac-op-id').value;
-        const selectedOperator = operators[operatorId];
+            document.getElementById('vac-edit-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const operatorId = document.getElementById('vac-op-id').value;
+                const selectedOperator = operators[operatorId];
 
-        const data = {
-            operatorId: operatorId,
-            operatorName: selectedOperator?.name || '',
-            shift: selectedOperator?.shift || currentUser?.shift,
-            startDate: document.getElementById('vac-start-date').value,
-            endDate: document.getElementById('vac-end-date').value,
-            days: parseInt(document.getElementById('vac-days').value),
-            status: document.getElementById('vac-status').value,
-            observation: document.getElementById('vac-obs').value,
-            operatorRole: selectedOperator?.role || 'Operador',
-            department: 'Produção'
-        };
+                const data = {
+                    operatorId: operatorId,
+                    operatorName: selectedOperator?.name || '',
+                    shift: selectedOperator?.shift || currentUser?.shift,
+                    startDate: document.getElementById('vac-start-date').value,
+                    endDate: document.getElementById('vac-end-date').value,
+                    days: parseInt(document.getElementById('vac-days').value),
+                    status: document.getElementById('vac-status').value,
+                    observation: document.getElementById('vac-obs').value,
+                    operatorRole: selectedOperator?.role || 'Operador',
+                    department: 'Produção'
+                };
 
-        database.ref(`personnel/vacations/${vacId}`).update(data).then(() => {
-            showToast('Férias atualizada com sucesso!');
-            document.querySelectorAll('.modal-overlay').forEach(m => closeModal(m));
-        }).catch(error => {
-            showToast('Erro ao atualizar: ' + error.message, 'error');
-        });
-    });
-}
+                database.ref(`personnel/vacations/${vacId}`).update(data).then(() => {
+                    showToast('Férias atualizada com sucesso!');
+                    document.querySelectorAll('.modal-overlay').forEach(m => closeModal(m));
+                }).catch(error => {
+                    showToast('Erro ao atualizar: ' + error.message, 'error');
+                });
+            });
+        }
 
-// ============================================
-// ADD BUTTONS FOR PERSONNEL
-// ============================================
+        // ============================================
+        // ADD BUTTONS FOR PERSONNEL
+        // ============================================
 
-function setupPersonnelAddButtons() {
-    const addCertBtn = document.getElementById('add-certificate-btn');
-    const addAbsBtn = document.getElementById('add-absence-btn');
-    const addWarnBtn = document.getElementById('add-warning-btn');
-    const addVacBtn = document.getElementById('add-vacation-btn');
-    const closeMonthBtn = document.getElementById('close-month-btn');
+        function setupPersonnelAddButtons() {
+            const addCertBtn = document.getElementById('add-certificate-btn');
+            const addAbsBtn = document.getElementById('add-absence-btn');
+            const addWarnBtn = document.getElementById('add-warning-btn');
+            const addVacBtn = document.getElementById('add-vacation-btn');
+            const closeMonthBtn = document.getElementById('close-month-btn');
 
-    if (addCertBtn) {
-        addCertBtn.addEventListener('click', () => {
-            const userShift = currentUser?.shift;
-            const operatorOptions = getOperatorsByShift(userShift).map(op =>
-                `<option value="${op.id}">${op.name}</option>`
-            ).join('');
+            if (addCertBtn) {
+                addCertBtn.addEventListener('click', () => {
+                    const userShift = currentUser?.shift;
+                    const operatorOptions = getOperatorsByShift(userShift).map(op =>
+                        `<option value="${op.id}">${op.name}</option>`
+                    ).join('');
 
-            const content = `
+                    const content = `
                 <form class="space-y-4" id="new-cert-form">
                     <div>
                         <label class="block text-xs sm:text-sm font-bold text-gray-800 mb-2"><i class="fas fa-user mr-2 text-cyan-600"></i>Operador</label>
@@ -4840,50 +4846,50 @@ function setupPersonnelAddButtons() {
                     <button type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-2 sm:py-3 rounded-lg font-bold hover:shadow-lg transition-all text-sm sm:text-base"><i class="fas fa-check mr-2"></i>Salvar</button>
                 </form>
             `;
-            const modal = showModal(content, { title: '<i class="fas fa-plus mr-2"></i>Novo Atestado' });
+                    const modal = showModal(content, { title: '<i class="fas fa-plus mr-2"></i>Novo Atestado' });
 
-            const typeSelect = document.getElementById('new-cert-type');
-            const outrosField = document.getElementById('new-cert-outros-field');
-            typeSelect?.addEventListener('change', () => {
-                outrosField.classList.toggle('hidden', typeSelect.value !== 'Outros');
-            });
+                    const typeSelect = document.getElementById('new-cert-type');
+                    const outrosField = document.getElementById('new-cert-outros-field');
+                    typeSelect?.addEventListener('change', () => {
+                        outrosField.classList.toggle('hidden', typeSelect.value !== 'Outros');
+                    });
 
-            document.getElementById('new-cert-form').addEventListener('submit', (e) => {
-                e.preventDefault();
-                const operatorId = document.getElementById('new-cert-op-id').value;
-                const selectedOperator = operators[operatorId];
+                    document.getElementById('new-cert-form').addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        const operatorId = document.getElementById('new-cert-op-id').value;
+                        const selectedOperator = operators[operatorId];
 
-                const data = {
-                    operatorId: operatorId,
-                    operatorName: selectedOperator?.name || '',
-                    shift: selectedOperator?.shift || currentUser?.shift,
-                    type: document.getElementById('new-cert-type').value,
-                    outrosType: document.getElementById('new-cert-type').value === 'Outros' ? document.getElementById('new-cert-outros-type').value : null,
-                    date: document.getElementById('new-cert-date').value,
-                    days: parseInt(document.getElementById('new-cert-days').value),
-                    observation: document.getElementById('new-cert-obs').value,
-                    status: 'Aprovado',
-                    operatorRole: selectedOperator?.role || 'Operador',
-                    department: 'Produção'
-                };
-                database.ref('personnel/certificates').push(data).then(() => {
-                    showToast('Atestado criado com sucesso!');
-                    document.querySelectorAll('.modal-overlay').forEach(m => closeModal(m));
-                }).catch(error => {
-                    showToast('Erro ao criar: ' + error.message, 'error');
+                        const data = {
+                            operatorId: operatorId,
+                            operatorName: selectedOperator?.name || '',
+                            shift: selectedOperator?.shift || currentUser?.shift,
+                            type: document.getElementById('new-cert-type').value,
+                            outrosType: document.getElementById('new-cert-type').value === 'Outros' ? document.getElementById('new-cert-outros-type').value : null,
+                            date: document.getElementById('new-cert-date').value,
+                            days: parseInt(document.getElementById('new-cert-days').value),
+                            observation: document.getElementById('new-cert-obs').value,
+                            status: 'Aprovado',
+                            operatorRole: selectedOperator?.role || 'Operador',
+                            department: 'Produção'
+                        };
+                        database.ref('personnel/certificates').push(data).then(() => {
+                            showToast('Atestado criado com sucesso!');
+                            document.querySelectorAll('.modal-overlay').forEach(m => closeModal(m));
+                        }).catch(error => {
+                            showToast('Erro ao criar: ' + error.message, 'error');
+                        });
+                    });
                 });
-            });
-        });
-    }
+            }
 
-    if (addAbsBtn) {
-        addAbsBtn.addEventListener('click', () => {
-            const userShift = currentUser?.shift;
-            const operatorOptions = getOperatorsByShift(userShift).map(op =>
-                `<option value="${op.id}">${op.name}</option>`
-            ).join('');
+            if (addAbsBtn) {
+                addAbsBtn.addEventListener('click', () => {
+                    const userShift = currentUser?.shift;
+                    const operatorOptions = getOperatorsByShift(userShift).map(op =>
+                        `<option value="${op.id}">${op.name}</option>`
+                    ).join('');
 
-            const content = `
+                    const content = `
                 <form class="space-y-4" id="new-abs-form">
                     <div>
                         <label class="block text-xs sm:text-sm font-bold text-gray-800 mb-2"><i class="fas fa-user mr-2 text-cyan-600"></i>Operador</label>
@@ -4906,42 +4912,42 @@ function setupPersonnelAddButtons() {
                     <button type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-2 sm:py-3 rounded-lg font-bold hover:shadow-lg transition-all text-sm sm:text-base"><i class="fas fa-check mr-2"></i>Registrar</button>
                 </form>
             `;
-            const modal = showModal(content, { title: '<i class="fas fa-plus mr-2"></i>Registrar Falta' });
+                    const modal = showModal(content, { title: '<i class="fas fa-plus mr-2"></i>Registrar Falta' });
 
-            document.getElementById('new-abs-form').addEventListener('submit', (e) => {
-                e.preventDefault();
-                const operatorId = document.getElementById('new-abs-op-id').value;
-                const selectedOperator = operators[operatorId];
+                    document.getElementById('new-abs-form').addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        const operatorId = document.getElementById('new-abs-op-id').value;
+                        const selectedOperator = operators[operatorId];
 
-                const data = {
-                    operatorId: operatorId,
-                    operatorName: selectedOperator?.name || '',
-                    date: document.getElementById('new-abs-date').value,
-                    type: document.getElementById('new-abs-type').value,
-                    shift: selectedOperator?.shift || currentUser?.shift,
-                    totalAbsences: 1,
-                    monthTotal: 1,
-                    operatorRole: selectedOperator?.role || 'Operador',
-                    department: 'Produção'
-                };
-                database.ref('personnel/absences').push(data).then(() => {
-                    showToast('Falta registrada com sucesso!');
-                    document.querySelectorAll('.modal-overlay').forEach(m => closeModal(m));
-                }).catch(error => {
-                    showToast('Erro ao registrar: ' + error.message, 'error');
+                        const data = {
+                            operatorId: operatorId,
+                            operatorName: selectedOperator?.name || '',
+                            date: document.getElementById('new-abs-date').value,
+                            type: document.getElementById('new-abs-type').value,
+                            shift: selectedOperator?.shift || currentUser?.shift,
+                            totalAbsences: 1,
+                            monthTotal: 1,
+                            operatorRole: selectedOperator?.role || 'Operador',
+                            department: 'Produção'
+                        };
+                        database.ref('personnel/absences').push(data).then(() => {
+                            showToast('Falta registrada com sucesso!');
+                            document.querySelectorAll('.modal-overlay').forEach(m => closeModal(m));
+                        }).catch(error => {
+                            showToast('Erro ao registrar: ' + error.message, 'error');
+                        });
+                    });
                 });
-            });
-        });
-    }
+            }
 
-    if (addWarnBtn) {
-        addWarnBtn.addEventListener('click', () => {
-            const userShift = currentUser?.shift;
-            const operatorOptions = getOperatorsByShift(userShift).map(op =>
-                `<option value="${op.id}">${op.name}</option>`
-            ).join('');
+            if (addWarnBtn) {
+                addWarnBtn.addEventListener('click', () => {
+                    const userShift = currentUser?.shift;
+                    const operatorOptions = getOperatorsByShift(userShift).map(op =>
+                        `<option value="${op.id}">${op.name}</option>`
+                    ).join('');
 
-            const content = `
+                    const content = `
                 <form class="space-y-4" id="new-warn-form">
                     <div>
                         <label class="block text-xs sm:text-sm font-bold text-gray-800 mb-2"><i class="fas fa-user mr-2 text-cyan-600"></i>Operador</label>
@@ -4973,43 +4979,43 @@ function setupPersonnelAddButtons() {
                     <button type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-2 sm:py-3 rounded-lg font-bold hover:shadow-lg transition-all text-sm sm:text-base"><i class="fas fa-check mr-2"></i>Criar</button>
                 </form>
             `;
-            const modal = showModal(content, { title: '<i class="fas fa-plus mr-2"></i>Nova Advertência' });
+                    const modal = showModal(content, { title: '<i class="fas fa-plus mr-2"></i>Nova Advertência' });
 
-            document.getElementById('new-warn-form').addEventListener('submit', (e) => {
-                e.preventDefault();
-                const operatorId = document.getElementById('new-warn-op-id').value;
-                const selectedOperator = operators[operatorId];
+                    document.getElementById('new-warn-form').addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        const operatorId = document.getElementById('new-warn-op-id').value;
+                        const selectedOperator = operators[operatorId];
 
-                const data = {
-                    operatorId: operatorId,
-                    operatorName: selectedOperator?.name || '',
-                    shift: selectedOperator?.shift || currentUser?.shift,
-                    level: document.getElementById('new-warn-level').value,
-                    reason: document.getElementById('new-warn-reason').value,
-                    date: document.getElementById('new-warn-date').value,
-                    description: document.getElementById('new-warn-description').value,
-                    status: 'Ativa',
-                    operatorRole: selectedOperator?.role || 'Operador',
-                    department: 'Produção'
-                };
-                database.ref('personnel/warnings').push(data).then(() => {
-                    showToast('Advertência criada com sucesso!');
-                    document.querySelectorAll('.modal-overlay').forEach(m => closeModal(m));
-                }).catch(error => {
-                    showToast('Erro ao criar: ' + error.message, 'error');
+                        const data = {
+                            operatorId: operatorId,
+                            operatorName: selectedOperator?.name || '',
+                            shift: selectedOperator?.shift || currentUser?.shift,
+                            level: document.getElementById('new-warn-level').value,
+                            reason: document.getElementById('new-warn-reason').value,
+                            date: document.getElementById('new-warn-date').value,
+                            description: document.getElementById('new-warn-description').value,
+                            status: 'Ativa',
+                            operatorRole: selectedOperator?.role || 'Operador',
+                            department: 'Produção'
+                        };
+                        database.ref('personnel/warnings').push(data).then(() => {
+                            showToast('Advertência criada com sucesso!');
+                            document.querySelectorAll('.modal-overlay').forEach(m => closeModal(m));
+                        }).catch(error => {
+                            showToast('Erro ao criar: ' + error.message, 'error');
+                        });
+                    });
                 });
-            });
-        });
-    }
+            }
 
-    if (addVacBtn) {
-        addVacBtn.addEventListener('click', () => {
-            const userShift = currentUser?.shift;
-            const operatorOptions = getOperatorsByShift(userShift).map(op =>
-                `<option value="${op.id}">${op.name}</option>`
-            ).join('');
+            if (addVacBtn) {
+                addVacBtn.addEventListener('click', () => {
+                    const userShift = currentUser?.shift;
+                    const operatorOptions = getOperatorsByShift(userShift).map(op =>
+                        `<option value="${op.id}">${op.name}</option>`
+                    ).join('');
 
-            const content = `
+                    const content = `
                 <form class="space-y-4" id="new-vac-form">
                     <div>
                         <label class="block text-xs sm:text-sm font-bold text-gray-800 mb-2"><i class="fas fa-user mr-2 text-cyan-600"></i>Operador</label>
@@ -5037,38 +5043,38 @@ function setupPersonnelAddButtons() {
                     <button type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-2 sm:py-3 rounded-lg font-bold hover:shadow-lg transition-all text-sm sm:text-base"><i class="fas fa-check mr-2"></i>Solicitar</button>
                 </form>
             `;
-            const modal = showModal(content, { title: '<i class="fas fa-sun mr-2"></i>Nova Férias' });
+                    const modal = showModal(content, { title: '<i class="fas fa-sun mr-2"></i>Nova Férias' });
 
-            document.getElementById('new-vac-form').addEventListener('submit', (e) => {
-                e.preventDefault();
-                const operatorId = document.getElementById('new-vac-op-id').value;
-                const selectedOperator = operators[operatorId];
+                    document.getElementById('new-vac-form').addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        const operatorId = document.getElementById('new-vac-op-id').value;
+                        const selectedOperator = operators[operatorId];
 
-                const data = {
-                    operatorId: operatorId,
-                    operatorName: selectedOperator?.name || '',
-                    shift: selectedOperator?.shift || currentUser?.shift,
-                    startDate: document.getElementById('new-vac-start-date').value,
-                    endDate: document.getElementById('new-vac-end-date').value,
-                    days: parseInt(document.getElementById('new-vac-days').value),
-                    status: 'Pendente',
-                    observation: document.getElementById('new-vac-obs').value,
-                    operatorRole: selectedOperator?.role || 'Operador',
-                    department: 'Produção'
-                };
-                database.ref('personnel/vacations').push(data).then(() => {
-                    showToast('Férias solicitada com sucesso!');
-                    document.querySelectorAll('.modal-overlay').forEach(m => closeModal(m));
-                }).catch(error => {
-                    showToast('Erro ao solicitar: ' + error.message, 'error');
+                        const data = {
+                            operatorId: operatorId,
+                            operatorName: selectedOperator?.name || '',
+                            shift: selectedOperator?.shift || currentUser?.shift,
+                            startDate: document.getElementById('new-vac-start-date').value,
+                            endDate: document.getElementById('new-vac-end-date').value,
+                            days: parseInt(document.getElementById('new-vac-days').value),
+                            status: 'Pendente',
+                            observation: document.getElementById('new-vac-obs').value,
+                            operatorRole: selectedOperator?.role || 'Operador',
+                            department: 'Produção'
+                        };
+                        database.ref('personnel/vacations').push(data).then(() => {
+                            showToast('Férias solicitada com sucesso!');
+                            document.querySelectorAll('.modal-overlay').forEach(m => closeModal(m));
+                        }).catch(error => {
+                            showToast('Erro ao solicitar: ' + error.message, 'error');
+                        });
+                    });
                 });
-            });
-        });
-    }
+            }
 
-    if (closeMonthBtn) {
-        closeMonthBtn.addEventListener('click', () => {
-            const content = `
+            if (closeMonthBtn) {
+                closeMonthBtn.addEventListener('click', () => {
+                    const content = `
                 <div class="text-center">
                     <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <i class="fas fa-lock text-yellow-600 text-2xl"></i>
@@ -5081,55 +5087,55 @@ function setupPersonnelAddButtons() {
                     </div>
                 </div>
             `;
-            const modal = showModal(content, { title: '<i class="fas fa-lock mr-2"></i>Finalizar Mês' });
+                    const modal = showModal(content, { title: '<i class="fas fa-lock mr-2"></i>Finalizar Mês' });
 
-            document.getElementById('cancel-close').onclick = () => closeModal(modal);
-            document.getElementById('confirm-close').onclick = () => {
-                database.ref('personnel/certificates').remove();
-                database.ref('personnel/absences').remove();
-                database.ref('personnel/warnings').remove();
-                database.ref('personnel/vacations').remove();
+                    document.getElementById('cancel-close').onclick = () => closeModal(modal);
+                    document.getElementById('confirm-close').onclick = () => {
+                        database.ref('personnel/certificates').remove();
+                        database.ref('personnel/absences').remove();
+                        database.ref('personnel/warnings').remove();
+                        database.ref('personnel/vacations').remove();
 
-                closeModal(modal);
-                showToast('Pessoal do mês zerado com sucesso!', 'success');
-                updatePersonnelView();
-            };
-        });
-    }
-}
+                        closeModal(modal);
+                        showToast('Pessoal do mês zerado com sucesso!', 'success');
+                        updatePersonnelView();
+                    };
+                });
+            }
+        }
 
-// ============================================
-// PERSONNEL TAB NAVIGATION
-// ============================================
+        // ============================================
+        // PERSONNEL TAB NAVIGATION
+        // ============================================
 
-function setupPersonnelTabNavigation() {
-    document.querySelectorAll('.personnel-tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const targetTab = btn.dataset.personnelTab;
+        function setupPersonnelTabNavigation() {
+            document.querySelectorAll('.personnel-tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const targetTab = btn.dataset.personnelTab;
 
-            document.querySelectorAll('.personnel-tab-btn').forEach(b => {
-                b.classList.remove('tab-active', 'primary-gradient', 'text-white', 'shadow-lg');
-                b.classList.add('text-gray-600', 'bg-white', 'card-shadow', 'hover:bg-gray-50', 'border-2', 'border-gray-200');
+                    document.querySelectorAll('.personnel-tab-btn').forEach(b => {
+                        b.classList.remove('tab-active', 'primary-gradient', 'text-white', 'shadow-lg');
+                        b.classList.add('text-gray-600', 'bg-white', 'card-shadow', 'hover:bg-gray-50', 'border-2', 'border-gray-200');
+                    });
+
+                    btn.classList.add('tab-active', 'primary-gradient', 'text-white', 'shadow-lg');
+                    btn.classList.remove('text-gray-600', 'bg-white', 'card-shadow', 'hover:bg-gray-50', 'border-2', 'border-gray-200');
+
+                    document.querySelectorAll('.personnel-tab-content').forEach(content => {
+                        content.classList.add('hidden');
+                    });
+
+                    document.querySelector(`.personnel-tab-content[data-personnel-tab="${targetTab}"]`)?.classList.remove('hidden');
+                });
             });
+        }
 
-            btn.classList.add('tab-active', 'primary-gradient', 'text-white', 'shadow-lg');
-            btn.classList.remove('text-gray-600', 'bg-white', 'card-shadow', 'hover:bg-gray-50', 'border-2', 'border-gray-200');
+        // ============================================
+        // HELPER FUNCTION FOR CONFIRMATION
+        // ============================================
 
-            document.querySelectorAll('.personnel-tab-content').forEach(content => {
-                content.classList.add('hidden');
-            });
-
-            document.querySelector(`.personnel-tab-content[data-personnel-tab="${targetTab}"]`)?.classList.remove('hidden');
-        });
-    });
-}
-
-// ============================================
-// HELPER FUNCTION FOR CONFIRMATION
-// ============================================
-
-function showDeleteConfirmation(itemType, onConfirm) {
-    const content = `
+        function showDeleteConfirmation(itemType, onConfirm) {
+            const content = `
         <div class="text-center">
             <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
@@ -5143,25 +5149,25 @@ function showDeleteConfirmation(itemType, onConfirm) {
         </div>
     `;
 
-    const modal = showModal(content, { title: '<i class="fas fa-exclamation-circle mr-2"></i>Confirmar Exclusão' });
+            const modal = showModal(content, { title: '<i class="fas fa-exclamation-circle mr-2"></i>Confirmar Exclusão' });
 
-    document.getElementById('cancel-delete').onclick = () => closeModal(modal);
-    document.getElementById('confirm-delete').onclick = () => {
-        onConfirm();
-        closeModal(modal);
-    };
-}
+            document.getElementById('cancel-delete').onclick = () => closeModal(modal);
+            document.getElementById('confirm-delete').onclick = () => {
+                onConfirm();
+                closeModal(modal);
+            };
+        }
 
-// ============================================
-// INITIALIZE PERSONNEL TAB
-// ============================================
+        // ============================================
+        // INITIALIZE PERSONNEL TAB
+        // ============================================
 
-function initializePersonnelTab() {
-    setupPersonnelTabNavigation();
-    setupPersonnelAddButtons();
-    setupPersonnelListeners();
-    updatePersonnelView();
-}
+        function initializePersonnelTab() {
+            setupPersonnelTabNavigation();
+            setupPersonnelAddButtons();
+            setupPersonnelListeners();
+            updatePersonnelView();
+        }
 
 
 
