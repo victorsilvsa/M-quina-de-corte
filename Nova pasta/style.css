@@ -1,632 +1,913 @@
+/* Reset e Base */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
+html,
+body {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+    font-family: 'Inter', sans-serif;
+}
 
-    /* Reset e Base */
-    * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
+body {
+    box-sizing: border-box;
+}
+
+/* Animations */
+@keyframes slideFromBottom {
+    from {
+        opacity: 0;
+        transform: translateY(100%);
     }
 
-    html, body {
-        width: 100%;
-        max-width: 100vw;
-        overflow-x: hidden;
-        font-family: 'Inter', sans-serif;
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideToBottom {
+    from {
+        opacity: 1;
+        transform: translateY(0);
     }
 
-    body {
-        box-sizing: border-box;
+    to {
+        opacity: 0;
+        transform: translateY(100%);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
     }
 
-    /* Animations */
-    @keyframes slideFromBottom {
-        from {
-            opacity: 0;
-            transform: translateY(100%);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
     }
 
-    @keyframes slideToBottom {
-        from {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        to {
-            opacity: 0;
-            transform: translateY(100%);
-        }
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes slideFromRight {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
     }
 
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideToRight {
+    from {
+        opacity: 1;
+        transform: translateX(0);
     }
 
-    @keyframes fadeOut {
-        from { opacity: 1; }
-        to { opacity: 0; }
+    to {
+        opacity: 0;
+        transform: translateX(100%);
     }
+}
 
-    @keyframes slideFromRight {
-        from {
-            opacity: 0;
-            transform: translateX(100%);
-        }
-        to {
-            opacity: 1;
-            transform: translateX(0);
-        }
-    }
+/* Modal Animations */
+.modal-overlay {
+    animation: fadeIn 0.3s ease-out forwards;
+}
 
-    @keyframes slideToRight {
-        from {
-            opacity: 1;
-            transform: translateX(0);
-        }
-        to {
-            opacity: 0;
-            transform: translateX(100%);
-        }
-    }
+.modal-overlay.closing {
+    animation: fadeOut 0.3s ease-out forwards;
+}
 
-    /* Modal Animations */
-    .modal-overlay {
-        animation: fadeIn 0.3s ease-out forwards;
-    }
+.modal-content {
+    animation: slideFromBottom 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    max-width: 100%;
+}
 
-    .modal-overlay.closing {
-        animation: fadeOut 0.3s ease-out forwards;
-    }
+.modal-content.closing {
+    animation: slideToBottom 0.3s ease-in forwards;
+}
 
-    .modal-content {
-        animation: slideFromBottom 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        max-width: 100%;
-    }
+/* Toast */
+.toast {
+    animation: slideFromRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    max-width: 90vw;
+    word-wrap: break-word;
+}
 
-    .modal-content.closing {
-        animation: slideToBottom 0.3s ease-in forwards;
-    }
+.toast.closing {
+    animation: slideToRight 0.3s ease-in forwards;
+}
 
-    /* Toast */
-    .toast {
-        animation: slideFromRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        max-width: 90vw;
-        word-wrap: break-word;
-    }
+/* Gradients & Backgrounds */
+.gradient-bg {
+    background: linear-gradient(135deg, #f8fafc 0%, #ecfeff 50%, #cffafe 100%);
+}
 
-    .toast.closing {
-        animation: slideToRight 0.3s ease-in forwards;
-    }
+.primary-gradient {
+    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+}
 
-    /* Gradients & Backgrounds */
-    .gradient-bg {
-        background: linear-gradient(135deg, #f8fafc 0%, #ecfeff 50%, #cffafe 100%);
-    }
+/* Shadows & Card Borders */
+.card-shadow {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e2e8f0;
+}
 
-    .primary-gradient {
-        background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
-    }
+.card-shadow-lg {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border: 1.5px solid #e2e8f0;
+}
 
-    /* Shadows */
-    .card-shadow {
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
-    }
+/* Shift Badges */
+.shift-badge-a {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
 
-    .card-shadow-lg {
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    }
+.shift-badge-b {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
 
-    /* Shift Badges */
-    .shift-badge-a {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    }
+.shift-badge-c {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
 
-    .shift-badge-b {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    }
+.production-low {
+    background: #ffe5e5;
+    border-left: 4px solid #ef4444;
+}
 
-    .shift-badge-c {
-        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    }
+.production-medium {
+    background: #fff9e5;
+    border-left: 4px solid #f59e0b;
+}
 
-    /* Production Status */
-    .production-low {
-        background: linear-gradient(90deg, #fef2f2 0%, #fee2e2 100%);
-        border-left: 4px solid #ef4444;
-    }
+.production-high {
+    background: #e5ffe5;
+    border-left: 4px solid #10b981;
+}
 
-    .production-medium {
-        background: linear-gradient(90deg, #fffbeb 0%, #fef3c7 100%);
-        border-left: 4px solid #f59e0b;
-    }
+/* Calendar */
+.calendar-day {
+    transition: all 0.2s ease;
+    border: 1px solid #e2e8f0;
+}
 
-    .production-high {
-        background: linear-gradient(90deg, #ecfdf5 0%, #d1fae5 100%);
-        border-left: 4px solid #10b981;
-    }
+.calendar-day:hover:not(.disabled) {
+    transform: scale(1.05);
+    border-color: #06b6d4;
+}
 
-    /* Calendar */
-    .calendar-day {
-        transition: all 0.2s ease;
-    }
+.calendar-day.has-data {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border-color: #059669;
+}
 
-    .calendar-day:hover:not(.disabled) {
-        transform: scale(1.05);
-    }
+.calendar-day.no-data {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: white;
+    border-color: #d97706;
+}
 
-    .calendar-day.has-data {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        color: white;
-    }
+.calendar-day.future {
+    background: #e5e7eb;
+    color: #9ca3af;
+    cursor: not-allowed;
+    border-color: #d1d5db;
+}
 
-    .calendar-day.no-data {
-        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-        color: white;
-    }
+.calendar-day.today {
+    box-shadow: 0 0 0 3px #06b6d4;
+}
 
-    .calendar-day.future {
-        background: #e5e7eb;
-        color: #9ca3af;
-        cursor: not-allowed;
-    }
+/* Tabs */
+.tab-active {
+    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+    color: white;
+}
 
-    .calendar-day.today {
-        box-shadow: 0 0 0 3px #06b6d4;
-    }
+/* Empty Row */
+.empty-row {
+    background-color: #fefce8;
+}
 
-    /* Tabs */
-    .tab-active {
-        background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
-        color: white;
-    }
+/* Scrollbar */
+.scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
 
-    /* Empty Row */
-    .empty-row {
-        background-color: #fefce8;
-    }
+.scrollbar-thin::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
 
-    /* Scrollbar */
-    .scrollbar-thin::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
-    }
+.scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
 
-    .scrollbar-thin::-webkit-scrollbar-track {
-        background: #f1f5f9;
-        border-radius: 3px;
-    }
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
 
-    .scrollbar-thin::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 3px;
-    }
+/* ================================================
+       MODERN TABLE — Desktop
+    ================================================ */
+.table-wrapper {
+    width: 100%;
+    overflow: visible;
+}
 
-    .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
-    }
+.modern-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border-radius: 12px;
+    overflow: hidden;
+    font-size: 0.875rem;
+    table-layout: auto;
+    border: 1.5px solid #cbd5e1;
+}
 
-    /* Modern Table - LARGURA OTIMIZADA */
-    .modern-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        border-radius: 12px;
-        overflow: hidden;
-        font-size: 0.875rem;
-        table-layout: auto;
-    }
+.modern-table thead {
+    background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+}
 
+.modern-table thead th {
+    color: white;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    padding: 0.875rem;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    text-align: left;
+    border-right: 1px solid rgba(255, 255, 255, 0.15);
+    border-bottom: 2px solid #0891b2;
+    white-space: nowrap;
+}
+
+.modern-table thead th:last-child {
+    border-right: none;
+}
+
+.modern-table thead th i {
+    margin-right: 0.4rem;
+    opacity: 0.95;
+    font-size: 0.72rem;
+}
+
+.modern-table tbody tr {
+    transition: all 0.2s ease;
+    background: white;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.modern-table tbody tr:hover {
+    background: linear-gradient(90deg, #f0f9ff 0%, #e0f2fe 100%);
+}
+
+.modern-table tbody td {
+    padding: 0.875rem;
+    vertical-align: middle;
+    font-size: 0.875rem;
+    color: #334155;
+    border-bottom: 1px solid #e2e8f0;
+    border-right: 1px solid #f1f5f9;
+    white-space: nowrap;
+}
+
+.modern-table tbody td:last-child {
+    border-right: none;
+}
+
+.modern-table tbody td:first-child {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.modern-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Action Buttons */
+.action-btn {
+    padding: 0.4rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    font-size: 0.8rem;
+}
+
+.action-btn:hover {
+    transform: scale(1.1);
+}
+
+/* Stat Card */
+.stat-card {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.25rem;
+    position: relative;
+    overflow: hidden;
+    border: 1.5px solid #cbd5e1;
+    transition: all 0.25s ease;
+}
+
+.stat-card:hover {
+    border-color: #06b6d4;
+    box-shadow: 0 10px 15px -3px rgba(6, 182, 212, 0.15), 0 4px 6px -2px rgba(6, 182, 212, 0.05);
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(8, 145, 178, 0.05) 100%);
+    border-radius: 50%;
+    transform: translate(30%, -30%);
+}
+
+/* Operator Card */
+.operator-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 1rem;
+    padding: 1.25rem;
+    border: 1.5px solid #cbd5e1;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+}
+
+.operator-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, #06b6d4 0%, #0891b2 100%);
+}
+
+.operator-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px -6px rgba(6, 182, 212, 0.3);
+    border-color: #06b6d4;
+}
+
+/* Settings Grid */
+.settings-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    width: 100%;
+}
+
+/* Settings Section Card */
+.settings-section {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    border: 1.5px solid #cbd5e1;
+    width: 100%;
+    overflow: visible;
+    transition: border-color 0.2s ease;
+}
+
+.settings-section:hover {
+    border-color: #0891b2;
+}
+
+.settings-section h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #0891b2;
+    margin: 0 0 0.875rem 0;
+    padding: 0;
+    border: none;
+}
+
+/* Operators / Machines Grid */
+.operators-grid,
+.machines-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+/* Mobile More Menu */
+.mobile-more-menu {
+    display: none;
+    position: fixed;
+    bottom: 70px;
+    left: 0;
+    right: 0;
+    background: white;
+    border-top: 2px solid #e2e8f0;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 45;
+    animation: slideFromBottom 0.3s ease-out;
+}
+
+.mobile-more-menu.active {
+    display: block;
+}
+
+.mobile-more-item {
+    padding: 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.mobile-more-item:last-child {
+    border-bottom: none;
+}
+
+.mobile-more-item:active {
+    background: #f0f9ff;
+}
+
+.mobile-more-item i {
+    width: 1.5rem;
+    text-align: center;
+    color: #06b6d4;
+}
+
+/* ================================================
+       MOBILE RESPONSIVE TABLE → CARD LAYOUT
+       Sem barra de rolagem horizontal no mobile
+    ================================================ */
+@media (max-width: 768px) {
+
+    /* Oculta thead no mobile — labels ficam nos pseudo-elements */
     .modern-table thead {
-        background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+        display: none;
     }
 
-    .modern-table thead th {
-        color: white;
-        font-weight: 700;
-        text-transform: uppercase;
-        font-size: 0.7rem;
-        letter-spacing: 0.03em;
-        padding: 0.875rem 0.875rem;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        text-align: left;
-        border: none;
-        white-space: nowrap;
-    }
-
-    .modern-table thead th i {
-        margin-right: 0.4rem;
-        opacity: 0.95;
-        font-size: 0.72rem;
+    /* Cada row vira um card separado */
+    .modern-table,
+    .modern-table tbody {
+        display: block;
+        width: 100%;
     }
 
     .modern-table tbody tr {
-        transition: all 0.2s ease;
+        display: flex !important;
+        flex-wrap: wrap;
         background: white;
-        border-bottom: 1px solid #e2e8f0;
+        border: 1px solid #cbd5e1;
+        border-radius: 14px;
+        margin: 0 0 0.75rem 0;
+        padding: 0;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        position: relative;
     }
 
     .modern-table tbody tr:hover {
-        background: linear-gradient(90deg, #f0f9ff 0%, #e0f2fe 100%);
-    }
-
-    .modern-table tbody td {
-        padding: 0.875rem 0.875rem;
-        vertical-align: middle;
-        font-size: 0.875rem;
-        color: #334155;
-        border: none;
-        white-space: nowrap;
-    }
-
-    .modern-table tbody td:first-child {
-        font-weight: 600;
-        color: #1e293b;
-    }
-
-    .modern-table tbody tr:last-child {
-        border-bottom: none;
-    }
-
-    /* Action Buttons */
-    .action-btn {
-        padding: 0.4rem;
-        border-radius: 0.5rem;
-        transition: all 0.2s ease;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 1.75rem;
-        height: 1.75rem;
-        font-size: 0.8rem;
-    }
-
-    .action-btn:hover {
-        transform: scale(1.1);
-    }
-
-    /* Stat Card */
-    .stat-card {
-        background: white;
-        border-radius: 1rem;
-        padding: 1.25rem;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .stat-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 100px;
-        height: 100px;
-        background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(8, 145, 178, 0.05) 100%);
-        border-radius: 50%;
-        transform: translate(30%, -30%);
-    }
-
-    /* Operator Card */
-    .operator-card {
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-        border-radius: 1rem;
-        padding: 1.25rem;
-        border: 2px solid #e2e8f0;
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-        height: 100%;
-    }
-
-    .operator-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 4px;
-        height: 100%;
-        background: linear-gradient(180deg, #06b6d4 0%, #0891b2 100%);
-    }
-
-    .operator-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 16px -6px rgba(6, 182, 212, 0.3);
         border-color: #06b6d4;
     }
 
-    /* LAYOUT EM GRID PARA SETTINGS - 2 COLUNAS LARGAS */
-    .settings-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 1rem;
-        width: 100%;
-    }
-
-    /* Cards de Settings */
-    .settings-section {
-        background: white;
-        border-radius: 1rem;
-        padding: 1.25rem;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-        border: 2px solid #e2e8f0;
-        width: 100%;
-        overflow: visible;
-    }
-
-    .settings-section h3 {
-        font-size: 0.95rem;
-        font-weight: 700;
-        color: #0891b2;
-        margin: 0 0 0.875rem 0;
-        padding: 0;
-        border: none;
-    }
-
-    /* Grid de Operadores Compacto */
-    .operators-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 1rem;
-    }
-
-    /* Grid de Máquinas Compacto */
-    .machines-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 1rem;
-    }
-
-    /* Mobile More Menu */
-    .mobile-more-menu {
-        display: none;
-        position: fixed;
-        bottom: 70px;
-        left: 0;
-        right: 0;
-        background: white;
-        border-top: 2px solid #e2e8f0;
-        box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
-        z-index: 45;
-        animation: slideFromBottom 0.3s ease-out;
-    }
-
-    .mobile-more-menu.active {
-        display: block;
-    }
-
-    .mobile-more-item {
-        padding: 1rem;
-        border-bottom: 1px solid #f1f5f9;
+    /* Cada célula vira um bloco label/valor dentro da linha flex */
+    .modern-table tbody td {
         display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        cursor: pointer;
-        transition: background 0.2s;
+        flex-direction: column;
+        justify-content: center;
+        gap: 2px;
+        padding: 0.6rem 0.75rem;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #1e293b;
+        border-bottom: 2px solid #cbd5e1;
+        border-right: 2px solid #cbd5e1;
+        white-space: normal;
+        word-break: break-word;
+        flex: 1 1 33%;
+        min-width: 0;
     }
 
-    .mobile-more-item:last-child {
+    /* Data e Turno ocupam a linha de cima inteira dividida em 2 */
+    .modern-table tbody td[data-label="Data"] {
+        flex: 1 1 55%;
+    }
+
+    .modern-table tbody td[data-label="Turno"] {
+        flex: 1 1 45%;
+        border-right: none;
+    }
+
+    /* Operador / Qtd / Parado dividem a segunda linha */
+    .modern-table tbody td[data-label="Operador"],
+    .modern-table tbody td[data-label="Qtd"] {
+        flex: 1 1 33%;
+    }
+
+    .modern-table tbody td[data-label="Parado"] {
+        flex: 1 1 33%;
+        border-right: none;
+    }
+
+    /* Última célula (ações) ocupa a linha toda, sem borda inferior */
+    .modern-table tbody td:last-child {
+        flex: 1 1 100%;
         border-bottom: none;
+        border-right: none;
+        flex-direction: row;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        background: #f8fafc;
     }
 
-    .mobile-more-item:active {
-        background: #f0f9ff;
+    /* Label gerado pelo atributo data-label */
+    .modern-table tbody td::before {
+        content: attr(data-label);
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        color: #64748b;
     }
 
-    .mobile-more-item i {
-        width: 1.5rem;
-        text-align: center;
-        color: #06b6d4;
+    /* Coluna de ações ocupa a linha toda centralizada */
+    .modern-table tbody td.actions-cell,
+    .modern-table tbody td:last-child {
+        justify-content: flex-end;
     }
 
-    /* Wrapper para tabelas - SEM SCROLL */
+    .modern-table tbody td.actions-cell::before,
+    .modern-table tbody td:last-child::before {
+        display: none;
+    }
+
+    /* Wrapper sem scroll */
     .table-wrapper {
         width: 100%;
         overflow: visible;
     }
 
-    /* Responsivo Mobile (até 768px) */
-    @media (max-width: 768px) {
-        /* Settings em 1 coluna no mobile */
-        .settings-grid {
-            grid-template-columns: 1fr;
-            gap: 0.875rem;
-            padding: 0;
-        }
-
-        /* Cards compactos no mobile */
-        .settings-section {
-            padding: 1rem;
-            border-radius: 0.75rem;
-        }
-
-        .settings-section h3 {
-            font-size: 0.9rem;
-            margin-bottom: 0.75rem;
-        }
-
-        /* Tabelas responsivas no mobile */
-        .table-wrapper {
-            width: 100%;
-            overflow: visible;
-        }
-
-        .modern-table {
-            width: 100%;
-            font-size: 0.75rem;
-            table-layout: fixed;
-        }
-
-        .modern-table thead th {
-            padding: 0.65rem 0.4rem;
-            font-size: 0.6rem;
-        }
-
-        .modern-table thead th i {
-            display: none;
-        }
-
-        .modern-table tbody td {
-            padding: 0.6rem 0.4rem;
-            font-size: 0.75rem;
-            white-space: normal;
-            word-break: break-word;
-        }
-
-        /* Coluna de ações */
-        .modern-table tbody td:last-child,
-        .modern-table thead th:last-child {
-            width: 70px;
-            text-align: center;
-        }
-
-        /* Botões menores no mobile */
-        .action-btn {
-            width: 1.5rem;
-            height: 1.5rem;
-            font-size: 0.75rem;
-            padding: 0.3rem;
-        }
-
-        .action-btn + .action-btn {
-            margin-left: 0.3rem;
-        }
-
-        /* Modal fullscreen */
-        .mobile-modal {
-            min-height: 100%;
-            border-radius: 0;
-            margin: 0;
-            max-width: 100%;
-            width: 100%;
-        }
-
-        /* Bottom Navigation */
-        .mobile-bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            width: 100%;
-            z-index: 40;
-        }
-
-        /* Ajustes de padding */
-        .tab-content {
-            padding-bottom: 5rem;
-            padding-left: 0.5rem;
-            padding-right: 0.5rem;
-        }
-
-        /* Operadores e máquinas em 1 coluna */
-        .operators-grid,
-        .machines-grid {
-            grid-template-columns: 1fr;
-            gap: 0.75rem;
-        }
-
-        .operator-card {
-            padding: 0.875rem;
-        }
-
-        /* Inputs compactos */
-        input[type="text"],
-        input[type="number"],
-        input[type="password"],
-        select {
-            padding: 0.5rem;
-            font-size: 0.875rem;
-        }
-
-        /* Botões add menores */
-        .primary-gradient {
-            padding: 0.55rem 0.85rem;
-            font-size: 0.75rem;
-        }
+    /* Settings em 1 coluna */
+    .settings-grid {
+        grid-template-columns: 1fr;
+        gap: 0.875rem;
+        padding: 0;
     }
 
-    /* Tablets (769px - 1024px) - 2 colunas LARGAS */
-    @media (min-width: 769px) and (max-width: 1024px) {
-        .settings-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.5rem;
-        }
-
-        .operators-grid,
-        .machines-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-        }
-
-        .modern-table thead th {
-            padding: 0.875rem 0.875rem;
-            font-size: 0.68rem;
-        }
-
-        .modern-table tbody td {
-            padding: 0.875rem 0.875rem;
-            font-size: 0.875rem;
-        }
-
-        .settings-section {
-            padding: 1.35rem;
-        }
+    .settings-section {
+        padding: 1rem;
+        border-radius: 0.75rem;
     }
 
-    /* Desktop (1025px+) - 2 COLUNAS LARGAS */
-    @media (min-width: 1025px) {
-        .settings-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 2rem;
-        }
-
-        .operators-grid,
-        .machines-grid {
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1rem;
-        }
-
-        .settings-section {
-            padding: 1.5rem;
-        }
+    .settings-section h3 {
+        font-size: 0.9rem;
+        margin-bottom: 0.75rem;
     }
 
-    /* Prevenir zoom no iOS */
-    @media (max-width: 768px) {
-        input[type="text"],
-        input[type="number"],
-        input[type="password"],
-        select,
-        textarea {
-            font-size: 16px !important;
-        }
-    }
-
-    /* Container responsivo */
-    .container-responsive {
+    /* Bottom Nav */
+    .mobile-bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
         width: 100%;
+        z-index: 40;
+    }
+
+    /* Padding conteúdo das abas */
+    .tab-content {
+        padding-bottom: 5rem;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+
+    /* Grids de operadores e máquinas em 1 coluna */
+    .operators-grid,
+    .machines-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .operator-card {
+        padding: 0.875rem;
+    }
+
+    /* Botões menores */
+    .action-btn {
+        width: 1.75rem;
+        height: 1.75rem;
+        font-size: 0.78rem;
+        padding: 0.35rem;
+    }
+
+    .action-btn+.action-btn {
+        margin-left: 0.3rem;
+    }
+
+    /* Align actions to the right with consistent spacing */
+    .modern-table tbody td.actions-cell {
+        justify-content: flex-end;
+        gap: 0.3rem;
+    }
+
+    /* Modal fullscreen */
+    .mobile-modal {
+        min-height: 100%;
+        border-radius: 0;
+        margin: 0;
         max-width: 100%;
-        padding: 0 1rem;
+        width: 100%;
     }
 
-    @media (min-width: 640px) {
-        .container-responsive {
-            padding: 0 1.5rem;
-        }
+    /* Inputs compactos */
+    input[type="text"],
+    input[type="number"],
+    input[type="password"],
+    select,
+    textarea {
+        padding: 0.5rem;
+        font-size: 16px !important;
+        /* evita zoom iOS */
     }
 
-    @media (min-width: 1024px) {
-        .container-responsive {
-            padding: 0 2rem;
-        }
+    /* Botões add */
+    .primary-gradient {
+        padding: 0.55rem 0.85rem;
+        font-size: 0.75rem;
     }
 
-    /* Fix para full-span no grid */
-    .settings-full-width {
-        grid-column: 1 / -1;
+    /* Stat cards empilhados */
+    .stat-card {
+        padding: 1rem;
     }
+
+    /* Stat cards em 2 colunas no mobile */
+    .stats-mobile-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+}
+
+/* ================================================
+       TABLETS (769px - 1024px)
+    ================================================ */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .settings-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+
+    .operators-grid,
+    .machines-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .modern-table thead th {
+        padding: 0.875rem;
+        font-size: 0.68rem;
+    }
+
+    .modern-table tbody td {
+        padding: 0.875rem;
+        font-size: 0.875rem;
+    }
+
+    .settings-section {
+        padding: 1.35rem;
+    }
+}
+
+/* ================================================
+       DESKTOP (1025px+)
+    ================================================ */
+@media (min-width: 1025px) {
+    .settings-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2rem;
+    }
+
+    .operators-grid,
+    .machines-grid {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1rem;
+    }
+
+    .settings-section {
+        padding: 1.5rem;
+    }
+}
+
+/* Container responsivo */
+.container-responsive {
+    width: 100%;
+    max-width: 100%;
+    padding: 0 1rem;
+}
+
+@media (min-width: 640px) {
+    .container-responsive {
+        padding: 0 1.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .container-responsive {
+        padding: 0 2rem;
+    }
+}
+
+/* Fix full-span no grid */
+
+
+@media (min-width: 640px) {
+    .container-responsive {
+        padding: 0 1.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .container-responsive {
+        padding: 0 2rem;
+    }
+}
+
+/* Fix para full-span no grid */
+.settings-full-width {
+    grid-column: 1 / -1;
+}
+
+/* ============================================
+   RECORD CARD (Registros Recentes - mobile)
+   ============================================ */
+.record-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.record-header,
+.record-footer {
+    display: flex;
+    align-items: center;
+    padding: 14px 12px;
+    gap: 10px;
+}
+
+.record-footer {
+    background: #fafbfc;
+}
+
+.record-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.record-item .title {
+    font-size: 11px;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.record-item .value {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1e293b;
+    white-space: nowrap;
+}
+
+.vertical-divider {
+    width: 2px;
+    align-self: stretch;
+    background: #cbd5e1;
+    border-radius: 1px;
+    flex-shrink: 0;
+}
+
+.horizontal-divider {
+    height: 2px;
+    width: 100%;
+    background: #cbd5e1;
+}
+
+.record-header .action-btn {
+    margin-left: auto;
+}
+
+.action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.15s ease;
+}
+
+.action-edit {
+    background: #e0f2fe;
+    color: #0284c7;
+}
+
+.action-edit:hover {
+    background: #bae6fd;
+}
+
+.action-delete {
+    background: #fee2e2;
+    color: #ef4444;
+}
+
+.action-delete:hover {
+    background: #fecaca;
+}
+
+@media (max-width: 640px) {
+
+    .record-header,
+    .record-footer {
+        padding: 12px 10px;
+        gap: 8px;
+    }
+
+    .record-item .value {
+        font-size: 13px;
+    }
+}
+
+input[type="text"],
+input[type="number"],
+input[type="password"],
+select,
+textarea {
+    font-size: 16px !important;
+}
+
+
+/* Container responsivo */
+.container-responsive {
+    width: 100%;
+    max-width: 100%;
+    padding: 0 1rem;
+}
+
+@media (min-width: 640px) {
+    .container-responsive {
+        padding: 0 1.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .container-responsive {
+        padding: 0 2rem;
+    }
+}
+
+/* Fix para full-span no grid */
+.settings-full-width {
+    grid-column: 1 / -1;
+}
