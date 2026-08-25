@@ -767,6 +767,11 @@
 
                 container.appendChild(modal);
 
+                // Prevenir recarregamento nativo de página em qualquer formulário aberto no modal
+                modal.querySelectorAll('form').forEach(f => {
+                    f.addEventListener('submit', (e) => e.preventDefault(), true);
+                });
+
                 const closeBtn = modal.querySelector('.close-modal');
                 closeBtn.onclick = () => closeModal(modal);
 
@@ -1695,7 +1700,7 @@
                 const downtimeMinutes = production?.downtimeMinutes || '';
 
                 const content = `
-                <form id="production-form" class="space-y-4">
+                <form id="production-form" class="space-y-4" onsubmit="event.preventDefault();">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Data</label>
                         <input type="date" id="prod-date" value="${date}" readonly
@@ -1756,8 +1761,10 @@
                     title: production ? 'Editar Registro' : 'Novo Registro'
                 });
 
-                document.getElementById('production-form').addEventListener('submit', async (e) => {
+                const prodForm = modal.querySelector('#production-form') || document.getElementById('production-form');
+                prodForm?.addEventListener('submit', async (e) => {
                     e.preventDefault();
+                    e.stopPropagation();
 
                     // ✅ PEGAR HORAS E MINUTOS SEPARADOS
                     const hours = parseInt(document.getElementById('prod-downtime-hours').value) || 0;
@@ -1890,7 +1897,7 @@
                         : this.renderShiftReadonly(userShift);
 
                     const content = `
-            <form id="my-operator-form" class="space-y-4">
+            <form id="my-operator-form" class="space-y-4" onsubmit="event.preventDefault();">
                 <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nome <span class="text-red-500">*</span></label>
                 <input type="text" id="my-operator-name" value="${this.escapeHtml(operator?.name || '')}" required 
@@ -1936,11 +1943,12 @@
                 },
 
                 attachFormHandler(modal, operatorId, operator, userShift) {
-                    const form = document.getElementById('my-operator-form');
+                    const form = modal.querySelector('#my-operator-form') || document.getElementById('my-operator-form');
                     if (!form) return;
 
                     form.addEventListener('submit', async (e) => {
                         e.preventDefault();
+                        e.stopPropagation();
 
                         const nameInput = document.getElementById('my-operator-name');
                         const shiftSelect = document.getElementById('my-operator-shift');
@@ -2183,7 +2191,7 @@
                     const user = userId ? users[userId] : null;
 
                     const content = `
-            <form id="user-form" class="space-y-4">
+            <form id="user-form" class="space-y-4" onsubmit="event.preventDefault();">
                 <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                     Usuário <span class="text-red-500">*</span>
@@ -2248,11 +2256,12 @@
                 },
 
                 attachUserFormHandler(modal, userId, user) {
-                    const form = document.getElementById('user-form');
+                    const form = modal.querySelector('#user-form') || document.getElementById('user-form');
                     if (!form) return;
 
                     form.addEventListener('submit', async (e) => {
                         e.preventDefault();
+                        e.stopPropagation();
 
                         const usernameInput = document.getElementById('user-username');
                         const nameInput = document.getElementById('user-name');
@@ -2293,7 +2302,7 @@
                     const operator = operatorId ? operators[operatorId] : null;
 
                     const content = `
-            <form id="operator-form" class="space-y-4">
+            <form id="operator-form" class="space-y-4" onsubmit="event.preventDefault();">
                 <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                     Nome <span class="text-red-500">*</span>
@@ -2328,11 +2337,12 @@
                 },
 
                 attachOperatorFormHandler(modal, operatorId, operator) {
-                    const form = document.getElementById('operator-form');
+                    const form = modal.querySelector('#operator-form') || document.getElementById('operator-form');
                     if (!form) return;
 
                     form.addEventListener('submit', async (e) => {
                         e.preventDefault();
+                        e.stopPropagation();
 
                         const nameInput = document.getElementById('operator-name');
                         const shiftSelect = document.getElementById('operator-shift');
@@ -2367,7 +2377,7 @@
                     const machine = machineId ? machines[machineId] : null;
 
                     const content = `
-            <form id="machine-form" class="space-y-4">
+            <form id="machine-form" class="space-y-4" onsubmit="event.preventDefault();">
                 <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                     Nome <span class="text-red-500">*</span>
@@ -2403,11 +2413,12 @@
                 },
 
                 attachMachineFormHandler(modal, machineId, machine) {
-                    const form = document.getElementById('machine-form');
+                    const form = modal.querySelector('#machine-form') || document.getElementById('machine-form');
                     if (!form) return;
 
                     form.addEventListener('submit', async (e) => {
                         e.preventDefault();
+                        e.stopPropagation();
 
                         const nameInput = document.getElementById('machine-name');
                         const targetInput = document.getElementById('machine-target');
@@ -4127,7 +4138,7 @@
                 ).join('');
 
                 const content = `
-            <form class="space-y-4" id="cert-edit-form">
+            <form class="space-y-4" id="cert-edit-form" onsubmit="event.preventDefault();">
                 <div>
                     <label class="block text-xs sm:text-sm font-bold text-gray-800 mb-2"><i class="fas fa-user mr-2 text-cyan-600"></i>Operador</label>
                     <select id="cert-op-id" class="w-full px-3 sm:px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium text-sm" required>
@@ -4163,15 +4174,17 @@
         `;
                 const modal = showModal(content, { title: '<i class="fas fa-edit mr-2"></i>Editar Atestado' });
 
-                const typeSelect = document.getElementById('cert-type');
-                const outrosField = document.getElementById('cert-outros-field');
+                const typeSelect = modal.querySelector('#cert-type') || document.getElementById('cert-type');
+                const outrosField = modal.querySelector('#cert-outros-field') || document.getElementById('cert-outros-field');
                 typeSelect?.addEventListener('change', () => {
-                    outrosField.classList.toggle('hidden', typeSelect.value !== 'Outros');
+                    outrosField?.classList.toggle('hidden', typeSelect.value !== 'Outros');
                 });
-                if (cert?.type === 'Outros') outrosField.classList.remove('hidden');
+                if (cert?.type === 'Outros') outrosField?.classList.remove('hidden');
 
-                document.getElementById('cert-edit-form').addEventListener('submit', (e) => {
+                const form = modal.querySelector('#cert-edit-form') || document.getElementById('cert-edit-form');
+                form?.addEventListener('submit', (e) => {
                     e.preventDefault();
+                    e.stopPropagation();
                     const operatorId = document.getElementById('cert-op-id').value;
                     const selectedOperator = operators[operatorId];
 
@@ -4295,7 +4308,7 @@
                 ).join('');
 
                 const content = `
-            <form class="space-y-4" id="abs-edit-form">
+            <form class="space-y-4" id="abs-edit-form" onsubmit="event.preventDefault();">
                 <div>
                     <label class="block text-xs sm:text-sm font-bold text-gray-800 mb-2"><i class="fas fa-user mr-2 text-cyan-600"></i>Operador</label>
                     <select id="abs-op-id" class="w-full px-3 sm:px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium text-sm" required>
@@ -4319,8 +4332,10 @@
         `;
                 const modal = showModal(content, { title: '<i class="fas fa-edit mr-2"></i>Editar Falta' });
 
-                document.getElementById('abs-edit-form').addEventListener('submit', (e) => {
+                const form = modal.querySelector('#abs-edit-form') || document.getElementById('abs-edit-form');
+                form?.addEventListener('submit', (e) => {
                     e.preventDefault();
+                    e.stopPropagation();
                     const operatorId = document.getElementById('abs-op-id').value;
                     const selectedOperator = operators[operatorId];
 
@@ -4446,7 +4461,7 @@
                 ).join('');
 
                 const content = `
-            <form class="space-y-4" id="warn-edit-form">
+            <form class="space-y-4" id="warn-edit-form" onsubmit="event.preventDefault();">
                 <div>
                     <label class="block text-xs sm:text-sm font-bold text-gray-800 mb-2"><i class="fas fa-user mr-2 text-cyan-600"></i>Operador</label>
                     <select id="warn-op-id" class="w-full px-3 sm:px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium text-sm" required>
@@ -4479,8 +4494,10 @@
         `;
                 const modal = showModal(content, { title: '<i class="fas fa-edit mr-2"></i>Editar Advertência' });
 
-                document.getElementById('warn-edit-form').addEventListener('submit', (e) => {
+                const form = modal.querySelector('#warn-edit-form') || document.getElementById('warn-edit-form');
+                form?.addEventListener('submit', (e) => {
                     e.preventDefault();
+                    e.stopPropagation();
                     const operatorId = document.getElementById('warn-op-id').value;
                     const selectedOperator = operators[operatorId];
 
@@ -4607,7 +4624,7 @@
                 ).join('');
 
                 const content = `
-            <form class="space-y-4" id="vac-edit-form">
+            <form class="space-y-4" id="vac-edit-form" onsubmit="event.preventDefault();">
                 <div>
                     <label class="block text-xs sm:text-sm font-bold text-gray-800 mb-2"><i class="fas fa-user mr-2 text-cyan-600"></i>Operador</label>
                     <select id="vac-op-id" class="w-full px-3 sm:px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium text-sm" required>
@@ -4644,8 +4661,10 @@
         `;
                 const modal = showModal(content, { title: '<i class="fas fa-edit mr-2"></i>Editar Férias' });
 
-                document.getElementById('vac-edit-form').addEventListener('submit', (e) => {
+                const form = modal.querySelector('#vac-edit-form') || document.getElementById('vac-edit-form');
+                form?.addEventListener('submit', (e) => {
                     e.preventDefault();
+                    e.stopPropagation();
                     const operatorId = document.getElementById('vac-op-id').value;
                     const selectedOperator = operators[operatorId];
 
@@ -4690,7 +4709,7 @@
                         ).join('');
 
                         const content = `
-                    <form class="space-y-4" id="new-cert-form">
+                    <form class="space-y-4" id="new-cert-form" onsubmit="event.preventDefault();">
                         <div>
                             <label class="block text-xs sm:text-sm font-bold text-gray-800 mb-2"><i class="fas fa-user mr-2 text-cyan-600"></i>Operador</label>
                             <select id="new-cert-op-id" class="w-full px-3 sm:px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium text-sm" required>
@@ -4726,14 +4745,16 @@
                 `;
                         const modal = showModal(content, { title: '<i class="fas fa-plus mr-2"></i>Novo Atestado' });
 
-                        const typeSelect = document.getElementById('new-cert-type');
-                        const outrosField = document.getElementById('new-cert-outros-field');
+                        const typeSelect = modal.querySelector('#new-cert-type') || document.getElementById('new-cert-type');
+                        const outrosField = modal.querySelector('#new-cert-outros-field') || document.getElementById('new-cert-outros-field');
                         typeSelect?.addEventListener('change', () => {
-                            outrosField.classList.toggle('hidden', typeSelect.value !== 'Outros');
+                            outrosField?.classList.toggle('hidden', typeSelect.value !== 'Outros');
                         });
 
-                        document.getElementById('new-cert-form').addEventListener('submit', (e) => {
+                        const form = modal.querySelector('#new-cert-form') || document.getElementById('new-cert-form');
+                        form?.addEventListener('submit', (e) => {
                             e.preventDefault();
+                            e.stopPropagation();
                             const operatorId = document.getElementById('new-cert-op-id').value;
                             const selectedOperator = operators[operatorId];
 
@@ -4768,7 +4789,7 @@
                         ).join('');
 
                         const content = `
-                    <form class="space-y-4" id="new-abs-form">
+                    <form class="space-y-4" id="new-abs-form" onsubmit="event.preventDefault();">
                         <div>
                             <label class="block text-xs sm:text-sm font-bold text-gray-800 mb-2"><i class="fas fa-user mr-2 text-cyan-600"></i>Operador</label>
                             <select id="new-abs-op-id" class="w-full px-3 sm:px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium text-sm" required>
@@ -4792,8 +4813,10 @@
                 `;
                         const modal = showModal(content, { title: '<i class="fas fa-plus mr-2"></i>Registrar Falta' });
 
-                        document.getElementById('new-abs-form').addEventListener('submit', (e) => {
+                        const form = modal.querySelector('#new-abs-form') || document.getElementById('new-abs-form');
+                        form?.addEventListener('submit', (e) => {
                             e.preventDefault();
+                            e.stopPropagation();
                             const operatorId = document.getElementById('new-abs-op-id').value;
                             const selectedOperator = operators[operatorId];
 
@@ -4826,7 +4849,7 @@
                         ).join('');
 
                         const content = `
-                    <form class="space-y-4" id="new-warn-form">
+                    <form class="space-y-4" id="new-warn-form" onsubmit="event.preventDefault();">
                         <div>
                             <label class="block text-xs sm:text-sm font-bold text-gray-800 mb-2"><i class="fas fa-user mr-2 text-cyan-600"></i>Operador</label>
                             <select id="new-warn-op-id" class="w-full px-3 sm:px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium text-sm" required>
@@ -4859,8 +4882,10 @@
                 `;
                         const modal = showModal(content, { title: '<i class="fas fa-plus mr-2"></i>Nova Advertência' });
 
-                        document.getElementById('new-warn-form').addEventListener('submit', (e) => {
+                        const form = modal.querySelector('#new-warn-form') || document.getElementById('new-warn-form');
+                        form?.addEventListener('submit', (e) => {
                             e.preventDefault();
+                            e.stopPropagation();
                             const operatorId = document.getElementById('new-warn-op-id').value;
                             const selectedOperator = operators[operatorId];
 
@@ -4894,7 +4919,7 @@
                         ).join('');
 
                         const content = `
-                    <form class="space-y-4" id="new-vac-form">
+                    <form class="space-y-4" id="new-vac-form" onsubmit="event.preventDefault();">
                         <div>
                             <label class="block text-xs sm:text-sm font-bold text-gray-800 mb-2"><i class="fas fa-user mr-2 text-cyan-600"></i>Operador</label>
                             <select id="new-vac-op-id" class="w-full px-3 sm:px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition-all font-medium text-sm" required>
@@ -4923,8 +4948,10 @@
                 `;
                         const modal = showModal(content, { title: '<i class="fas fa-sun mr-2"></i>Nova Férias' });
 
-                        document.getElementById('new-vac-form').addEventListener('submit', (e) => {
+                        const form = modal.querySelector('#new-vac-form') || document.getElementById('new-vac-form');
+                        form?.addEventListener('submit', (e) => {
                             e.preventDefault();
+                            e.stopPropagation();
                             const operatorId = document.getElementById('new-vac-op-id').value;
                             const selectedOperator = operators[operatorId];
 
