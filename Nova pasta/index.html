@@ -749,6 +749,7 @@
 
             function showModal(content, options = {}) {
                 const container = document.getElementById('modal-container');
+                if (container) container.innerHTML = '';
                 const modal = document.createElement('div');
                 modal.className = 'modal-overlay fixed inset-0 bg-black/50 flex items-end md:items-center justify-center z-50';
                 modal.innerHTML = `
@@ -1767,8 +1768,15 @@
                     e.stopPropagation();
 
                     // ✅ PEGAR HORAS E MINUTOS SEPARADOS
-                    const hours = parseInt(document.getElementById('prod-downtime-hours').value) || 0;
-                    const minutes = parseInt(document.getElementById('prod-downtime-minutes').value) || 0;
+                    const hoursInput = modal.querySelector('#prod-downtime-hours') || document.getElementById('prod-downtime-hours');
+                    const minutesInput = modal.querySelector('#prod-downtime-minutes') || document.getElementById('prod-downtime-minutes');
+                    const dateInput = modal.querySelector('#prod-date') || document.getElementById('prod-date');
+                    const opInput = modal.querySelector('#prod-operator') || document.getElementById('prod-operator');
+                    const qtyInput = modal.querySelector('#prod-quantity') || document.getElementById('prod-quantity');
+                    const obsInput = modal.querySelector('#prod-observations') || document.getElementById('prod-observations');
+
+                    const hours = parseInt(hoursInput?.value) || 0;
+                    const minutes = parseInt(minutesInput?.value) || 0;
 
                     // ✅ VALIDAR MINUTOS
                     if (minutes > 59) {
@@ -1777,13 +1785,13 @@
                     }
 
                     const data = {
-                        date: document.getElementById('prod-date').value,
+                        date: dateInput?.value || '',
                         machineId,
-                        operatorId: document.getElementById('prod-operator').value,
-                        quantity: parseInt(document.getElementById('prod-quantity').value) || 0,
+                        operatorId: opInput?.value || '',
+                        quantity: parseInt(qtyInput?.value) || 0,
                         downtimeHours: hours,
                         downtimeMinutes: minutes,
-                        observations: document.getElementById('prod-observations').value
+                        observations: obsInput?.value || ''
                     };
 
                     try {
@@ -1950,20 +1958,22 @@
                         e.preventDefault();
                         e.stopPropagation();
 
-                        const nameInput = document.getElementById('my-operator-name');
-                        const shiftSelect = document.getElementById('my-operator-shift');
+                        const nameInput = modal.querySelector('#my-operator-name') || document.getElementById('my-operator-name');
+                        const shiftSelect = modal.querySelector('#my-operator-shift') || document.getElementById('my-operator-shift');
 
-                        if (!nameInput || !nameInput.value.trim()) {
+                        const name = nameInput?.value ? nameInput.value.trim() : '';
+
+                        if (!name) {
                             showToast('Nome é obrigatório!', 'error');
                             return;
                         }
 
-                        const shift = currentUser.role === 'admin' && shiftSelect
+                        const shift = currentUser?.role === 'admin' && shiftSelect
                             ? shiftSelect.value
-                            : userShift;
+                            : (userShift || '1');
 
                         const data = {
-                            name: nameInput.value.trim(),
+                            name: name,
                             shift: shift
                         };
 
@@ -2263,23 +2273,27 @@
                         e.preventDefault();
                         e.stopPropagation();
 
-                        const usernameInput = document.getElementById('user-username');
-                        const nameInput = document.getElementById('user-name');
-                        const passwordInput = document.getElementById('user-password');
-                        const roleSelect = document.getElementById('user-role');
-                        const shiftSelect = document.getElementById('user-shift');
+                        const usernameInput = modal.querySelector('#user-username') || document.getElementById('user-username');
+                        const nameInput = modal.querySelector('#user-name') || document.getElementById('user-name');
+                        const passwordInput = modal.querySelector('#user-password') || document.getElementById('user-password');
+                        const roleSelect = modal.querySelector('#user-role') || document.getElementById('user-role');
+                        const shiftSelect = modal.querySelector('#user-shift') || document.getElementById('user-shift');
 
-                        if (!usernameInput?.value.trim() || !nameInput?.value.trim() || !passwordInput?.value.trim()) {
+                        const username = usernameInput?.value ? usernameInput.value.trim() : '';
+                        const name = nameInput?.value ? nameInput.value.trim() : '';
+                        const password = passwordInput?.value ? passwordInput.value.trim() : '';
+
+                        if (!username || !name || !password) {
                             showToast('Preencha todos os campos obrigatórios!', 'error');
                             return;
                         }
 
                         const data = {
-                            username: usernameInput.value.trim(),
-                            name: nameInput.value.trim(),
-                            password: passwordInput.value.trim(),
-                            role: roleSelect.value,
-                            shift: shiftSelect.value || null
+                            username: username,
+                            name: name,
+                            password: password,
+                            role: roleSelect?.value || 'operator',
+                            shift: shiftSelect?.value || null
                         };
 
                         try {
@@ -2344,17 +2358,19 @@
                         e.preventDefault();
                         e.stopPropagation();
 
-                        const nameInput = document.getElementById('operator-name');
-                        const shiftSelect = document.getElementById('operator-shift');
+                        const nameInput = modal.querySelector('#operator-name') || document.getElementById('operator-name');
+                        const shiftSelect = modal.querySelector('#operator-shift') || document.getElementById('operator-shift');
 
-                        if (!nameInput?.value.trim()) {
+                        const name = nameInput?.value ? nameInput.value.trim() : '';
+
+                        if (!name) {
                             showToast('Nome é obrigatório!', 'error');
                             return;
                         }
 
                         const data = {
-                            name: nameInput.value.trim(),
-                            shift: shiftSelect.value
+                            name: name,
+                            shift: shiftSelect?.value || '1'
                         };
 
                         try {
@@ -2420,15 +2436,17 @@
                         e.preventDefault();
                         e.stopPropagation();
 
-                        const nameInput = document.getElementById('machine-name');
-                        const targetInput = document.getElementById('machine-target');
+                        const nameInput = modal.querySelector('#machine-name') || document.getElementById('machine-name');
+                        const targetInput = modal.querySelector('#machine-target') || document.getElementById('machine-target');
 
-                        if (!nameInput?.value.trim()) {
+                        const name = nameInput?.value ? nameInput.value.trim() : '';
+
+                        if (!name) {
                             showToast('Nome é obrigatório!', 'error');
                             return;
                         }
 
-                        const target = parseInt(targetInput.value) || 0;
+                        const target = parseInt(targetInput?.value) || 0;
 
                         if (target < 0) {
                             showToast('Meta deve ser um número positivo!', 'error');
@@ -2436,7 +2454,7 @@
                         }
 
                         const data = {
-                            name: nameInput.value.trim(),
+                            name: name,
                             target: target
                         };
 
@@ -4185,18 +4203,18 @@
                 form?.addEventListener('submit', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    const operatorId = document.getElementById('cert-op-id').value;
+                    const operatorId = modal.querySelector('#cert-op-id')?.value;
                     const selectedOperator = operators[operatorId];
 
                     const data = {
                         operatorId: operatorId,
                         operatorName: selectedOperator?.name || '',
                         shift: selectedOperator?.shift || currentUser?.shift,
-                        type: document.getElementById('cert-type').value,
-                        outrosType: document.getElementById('cert-type').value === 'Outros' ? document.getElementById('cert-outros-type').value : null,
-                        date: document.getElementById('cert-date').value,
-                        days: parseInt(document.getElementById('cert-days').value),
-                        observation: document.getElementById('cert-obs').value,
+                        type: modal.querySelector('#cert-type')?.value,
+                        outrosType: modal.querySelector('#cert-type')?.value === 'Outros' ? modal.querySelector('#cert-outros-type')?.value : null,
+                        date: modal.querySelector('#cert-date')?.value,
+                        days: parseInt(modal.querySelector('#cert-days')?.value) || 1,
+                        observation: modal.querySelector('#cert-obs')?.value || '',
                         status: 'Aprovado',
                         operatorRole: selectedOperator?.role || 'Operador',
                         department: 'Produção'
@@ -4336,14 +4354,14 @@
                 form?.addEventListener('submit', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    const operatorId = document.getElementById('abs-op-id').value;
+                    const operatorId = modal.querySelector('#abs-op-id')?.value;
                     const selectedOperator = operators[operatorId];
 
                     const data = {
                         operatorId: operatorId,
                         operatorName: selectedOperator?.name || '',
-                        date: document.getElementById('abs-date').value,
-                        type: document.getElementById('abs-type').value,
+                        date: modal.querySelector('#abs-date')?.value,
+                        type: modal.querySelector('#abs-type')?.value,
                         shift: selectedOperator?.shift || currentUser?.shift,
                         totalAbsences: 1,
                         monthTotal: 1,
@@ -4498,17 +4516,17 @@
                 form?.addEventListener('submit', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    const operatorId = document.getElementById('warn-op-id').value;
+                    const operatorId = modal.querySelector('#warn-op-id')?.value;
                     const selectedOperator = operators[operatorId];
 
                     const data = {
                         operatorId: operatorId,
                         operatorName: selectedOperator?.name || '',
                         shift: selectedOperator?.shift || currentUser?.shift,
-                        level: document.getElementById('warn-level').value,
-                        reason: document.getElementById('warn-reason').value,
-                        date: document.getElementById('warn-date').value,
-                        description: document.getElementById('warn-description').value,
+                        level: modal.querySelector('#warn-level')?.value,
+                        reason: modal.querySelector('#warn-reason')?.value,
+                        date: modal.querySelector('#warn-date')?.value,
+                        description: modal.querySelector('#warn-description')?.value,
                         status: 'Ativa',
                         operatorRole: selectedOperator?.role || 'Operador',
                         department: 'Produção'
@@ -4665,18 +4683,18 @@
                 form?.addEventListener('submit', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    const operatorId = document.getElementById('vac-op-id').value;
+                    const operatorId = modal.querySelector('#vac-op-id')?.value;
                     const selectedOperator = operators[operatorId];
 
                     const data = {
                         operatorId: operatorId,
                         operatorName: selectedOperator?.name || '',
                         shift: selectedOperator?.shift || currentUser?.shift,
-                        startDate: document.getElementById('vac-start-date').value,
-                        endDate: document.getElementById('vac-end-date').value,
-                        days: parseInt(document.getElementById('vac-days').value),
-                        status: document.getElementById('vac-status').value,
-                        observation: document.getElementById('vac-obs').value,
+                        startDate: modal.querySelector('#vac-start-date')?.value,
+                        endDate: modal.querySelector('#vac-end-date')?.value,
+                        days: parseInt(modal.querySelector('#vac-days')?.value) || 15,
+                        status: modal.querySelector('#vac-status')?.value,
+                        observation: modal.querySelector('#vac-obs')?.value || '',
                         operatorRole: selectedOperator?.role || 'Operador',
                         department: 'Produção'
                     };
@@ -4755,18 +4773,18 @@
                         form?.addEventListener('submit', (e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            const operatorId = document.getElementById('new-cert-op-id').value;
+                            const operatorId = modal.querySelector('#new-cert-op-id')?.value;
                             const selectedOperator = operators[operatorId];
 
                             const data = {
                                 operatorId: operatorId,
                                 operatorName: selectedOperator?.name || '',
                                 shift: selectedOperator?.shift || currentUser?.shift,
-                                type: document.getElementById('new-cert-type').value,
-                                outrosType: document.getElementById('new-cert-type').value === 'Outros' ? document.getElementById('new-cert-outros-type').value : null,
-                                date: document.getElementById('new-cert-date').value,
-                                days: parseInt(document.getElementById('new-cert-days').value),
-                                observation: document.getElementById('new-cert-obs').value,
+                                type: modal.querySelector('#new-cert-type')?.value,
+                                outrosType: modal.querySelector('#new-cert-type')?.value === 'Outros' ? modal.querySelector('#new-cert-outros-type')?.value : null,
+                                date: modal.querySelector('#new-cert-date')?.value,
+                                days: parseInt(modal.querySelector('#new-cert-days')?.value) || 1,
+                                observation: modal.querySelector('#new-cert-obs')?.value || '',
                                 status: 'Aprovado',
                                 operatorRole: selectedOperator?.role || 'Operador',
                                 department: 'Produção'
@@ -4817,14 +4835,14 @@
                         form?.addEventListener('submit', (e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            const operatorId = document.getElementById('new-abs-op-id').value;
+                            const operatorId = modal.querySelector('#new-abs-op-id')?.value;
                             const selectedOperator = operators[operatorId];
 
                             const data = {
                                 operatorId: operatorId,
                                 operatorName: selectedOperator?.name || '',
-                                date: document.getElementById('new-abs-date').value,
-                                type: document.getElementById('new-abs-type').value,
+                                date: modal.querySelector('#new-abs-date')?.value,
+                                type: modal.querySelector('#new-abs-type')?.value,
                                 shift: selectedOperator?.shift || currentUser?.shift,
                                 totalAbsences: 1,
                                 monthTotal: 1,
@@ -4886,17 +4904,17 @@
                         form?.addEventListener('submit', (e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            const operatorId = document.getElementById('new-warn-op-id').value;
+                            const operatorId = modal.querySelector('#new-warn-op-id')?.value;
                             const selectedOperator = operators[operatorId];
 
                             const data = {
                                 operatorId: operatorId,
                                 operatorName: selectedOperator?.name || '',
                                 shift: selectedOperator?.shift || currentUser?.shift,
-                                level: document.getElementById('new-warn-level').value,
-                                reason: document.getElementById('new-warn-reason').value,
-                                date: document.getElementById('new-warn-date').value,
-                                description: document.getElementById('new-warn-description').value,
+                                level: modal.querySelector('#new-warn-level')?.value,
+                                reason: modal.querySelector('#new-warn-reason')?.value,
+                                date: modal.querySelector('#new-warn-date')?.value,
+                                description: modal.querySelector('#new-warn-description')?.value,
                                 status: 'Ativa',
                                 operatorRole: selectedOperator?.role || 'Operador',
                                 department: 'Produção'
@@ -4952,18 +4970,18 @@
                         form?.addEventListener('submit', (e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            const operatorId = document.getElementById('new-vac-op-id').value;
+                            const operatorId = modal.querySelector('#new-vac-op-id')?.value;
                             const selectedOperator = operators[operatorId];
 
                             const data = {
                                 operatorId: operatorId,
                                 operatorName: selectedOperator?.name || '',
                                 shift: selectedOperator?.shift || currentUser?.shift,
-                                startDate: document.getElementById('new-vac-start-date').value,
-                                endDate: document.getElementById('new-vac-end-date').value,
-                                days: parseInt(document.getElementById('new-vac-days').value),
+                                startDate: modal.querySelector('#new-vac-start-date')?.value,
+                                endDate: modal.querySelector('#new-vac-end-date')?.value,
+                                days: parseInt(modal.querySelector('#new-vac-days')?.value) || 15,
                                 status: 'Pendente',
-                                observation: document.getElementById('new-vac-obs').value,
+                                observation: modal.querySelector('#new-vac-obs')?.value || '',
                                 operatorRole: selectedOperator?.role || 'Operador',
                                 department: 'Produção'
                             };
