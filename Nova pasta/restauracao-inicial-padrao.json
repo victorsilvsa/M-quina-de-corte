@@ -1,0 +1,38 @@
+{
+  "users": {
+    "-DefaultAdminUser01": {
+      "username": "admin",
+      "password": "admin123",
+      "name": "Administrador",
+      "role": "admin",
+      "shift": null
+    }
+  },
+  "machines": {
+    "-DefaultMachine08": {
+      "name": "Máquina 8",
+      "target": 1000
+    },
+    "-DefaultMachine09": {
+      "name": "Máquina 9",
+      "target": 1000
+    },
+    "-DefaultMachine10": {
+      "name": "Máquina 10",
+      "target": 1000
+    }
+  },
+  "settings": {
+    "lowLimit": 500,
+    "highLimit": 1000
+  },
+  "operators": {},
+  "productions": {},
+  "personnel": {
+    "certificates": {},
+    "absences": {},
+    "warnings": {},
+    "vacations": {}
+  },
+  "accessLogs": {}
+}
