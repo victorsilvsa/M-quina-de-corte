@@ -1838,6 +1838,7 @@
                     const myOperators = this.getFilteredOperators();
                     const html = this.renderOperatorCards(myOperators);
 
+                    this.operatorsGrid = this.operatorsGrid || document.getElementById('operators-grid');
                     if (this.operatorsGrid) {
                         this.operatorsGrid.innerHTML = html;
                     }
@@ -1846,8 +1847,8 @@
                 getFilteredOperators() {
                     const entries = Object.entries(operators);
 
-                    if (currentUser.role === 'leader') {
-                        return entries.filter(([, op]) => op.shift === currentUser.shift);
+                    if (currentUser?.role === 'leader') {
+                        return entries.filter(([, op]) => op.shift === currentUser?.shift);
                     }
 
                     return entries;
@@ -1881,8 +1882,8 @@
 
                 showModal(operatorId = null) {
                     const operator = operatorId ? operators[operatorId] : null;
-                    const userShift = currentUser.shift;
-                    const isAdmin = currentUser.role === 'admin';
+                    const userShift = currentUser?.shift || null;
+                    const isAdmin = currentUser?.role === 'admin';
 
                     const shiftField = isAdmin
                         ? this.renderShiftSelect(operator?.shift)
@@ -2056,6 +2057,7 @@
                 },
 
                 renderUsers() {
+                    if (!this.usersTableBody) this.usersTableBody = document.getElementById('users-table-body');
                     if (!this.usersTableBody) return;
 
                     const entries = Object.entries(users);
@@ -2092,6 +2094,7 @@
                 },
 
                 renderOperators() {
+                    if (!this.operatorsTableBody) this.operatorsTableBody = document.getElementById('operators-table-body');
                     if (!this.operatorsTableBody) return;
 
                     const entries = Object.entries(operators);
@@ -2124,6 +2127,7 @@
                 },
 
                 renderMachines() {
+                    if (!this.machinesTableBody) this.machinesTableBody = document.getElementById('machines-table-body');
                     if (!this.machinesTableBody) return;
 
                     const entries = Object.entries(machines);
@@ -2156,6 +2160,8 @@
                 },
 
                 renderLimits() {
+                    if (!this.lowLimitInput) this.lowLimitInput = document.getElementById('low-limit');
+                    if (!this.highLimitInput) this.highLimitInput = document.getElementById('high-limit');
                     if (this.lowLimitInput) {
                         this.lowLimitInput.value = settings.lowLimit || 500;
                     }
